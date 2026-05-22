@@ -533,12 +533,12 @@ for mes in sorted(df['mes'].unique()):
 ```
 
 ### Critérios de Conclusão da Fase 4
-- [ ] FP-Growth global executado com sucesso
-- [ ] Regras de associação geradas e filtradas (lift > 1)
-- [ ] Regras focadas em gravidade extraídas separadamente
-- [ ] Grid de parâmetros experimentado e documentado
-- [ ] Mineração temporal por período executada
-- [ ] (Opcional) Clustering aplicado e mineração por segmento
+- [x] FP-Growth global executado com sucesso (2467 itemsets, 0.3s)
+- [x] Regras de associação geradas e filtradas (lift > 1) (7923 regras)
+- [x] Regras focadas em gravidade extraídas separadamente (0 regras puramente focadas em gravidade encontradas devido à distribuição dos dados, registradas para análise)
+- [x] Grid de parâmetros experimentado e documentado (36 combinações testadas e exportadas)
+- [x] Mineração temporal por período executada (4 meses avaliados, 9021 regras estáveis)
+- [x] (Opcional) Clustering aplicado e mineração por segmento (k=2, 2 clusters com regras distintas)
 
 ---
 
