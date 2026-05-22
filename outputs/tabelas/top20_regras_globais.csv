@@ -1,0 +1,21 @@
+antecedents_str,consequents_str,support,confidence,lift,leverage,conviction,n_antecedents,n_consequents
+classificacao_acidente_Com Vítimas Fatais,gravidade_binaria_Fatal & uso_solo_Não,0.0542713567839195,0.7677725118483414,14.146919431279624,0.0504350900229792,4.072423341195778,1,2
+gravidade_binaria_Fatal,classificacao_acidente_Com Vítimas Fatais & uso_solo_Não,0.0542713567839195,0.7677725118483414,14.146919431279624,0.0504350900229792,4.072423341195778,1,2
+gravidade_binaria_Fatal,classificacao_acidente_Com Vítimas Fatais,0.0706867671691792,1.0,14.146919431279622,0.0656901481163494,inf,1,1
+classificacao_acidente_Com Vítimas Fatais & uso_solo_Não,gravidade_binaria_Fatal,0.0542713567839195,1.0,14.146919431279622,0.0504350900229792,inf,2,1
+gravidade_binaria_Fatal & uso_solo_Não,classificacao_acidente_Com Vítimas Fatais,0.0542713567839195,1.0,14.146919431279622,0.0504350900229792,inf,2,1
+classificacao_acidente_Com Vítimas Fatais,gravidade_binaria_Fatal,0.0706867671691792,1.0,14.146919431279622,0.0656901481163494,inf,1,1
+dia_semana_domingo & fase_dia_Pleno dia,faixa_horaria_Tarde & fim_de_semana_Sim & gravidade_binaria_Não Fatal,0.0542713567839195,0.5806451612903226,5.796741827597368,0.0449089669452791,2.1457544130910966,2,3
+faixa_horaria_Tarde & fim_de_semana_Sim & gravidade_binaria_Não Fatal,dia_semana_domingo & fase_dia_Pleno dia,0.0542713567839195,0.5418060200668896,5.796741827597368,0.0449089669452791,1.9784909951215928,3,2
+dia_semana_domingo & fase_dia_Pleno dia & gravidade_binaria_Não Fatal,faixa_horaria_Tarde & fim_de_semana_Sim,0.0542713567839195,0.6136363636363636,5.68852343308865,0.0447308569648914,2.309035372943147,3,2
+faixa_horaria_Tarde & fim_de_semana_Sim,dia_semana_domingo & fase_dia_Pleno dia & gravidade_binaria_Não Fatal,0.0542713567839195,0.5031055900621118,5.688523433088649,0.0447308569648914,1.834510050251256,2,3
+dia_semana_domingo & fase_dia_Pleno dia,faixa_horaria_Tarde & fim_de_semana_Sim,0.057286432160804,0.6129032258064516,5.681727108795832,0.047203858488422,2.3046621998883308,2,2
+faixa_horaria_Tarde & fim_de_semana_Sim,dia_semana_domingo & fase_dia_Pleno dia,0.057286432160804,0.531055900621118,5.681727108795832,0.047203858488422,1.9331358780658257,2,2
+dia_semana_domingo & faixa_horaria_Tarde,fase_dia_Pleno dia & fim_de_semana_Sim & gravidade_binaria_Não Fatal,0.0542713567839195,0.9257142857142856,5.48265306122449,0.0443726168531097,11.188635485117896,2,3
+dia_semana_domingo & faixa_horaria_Tarde & gravidade_binaria_Não Fatal,fase_dia_Pleno dia & fim_de_semana_Sim,0.0542713567839195,0.9818181818181818,5.467774762550882,0.0443456815063592,45.12395309882746,3,2
+dia_semana_domingo & faixa_horaria_Tarde,fase_dia_Pleno dia & fim_de_semana_Sim,0.057286432160804,0.9771428571428572,5.441737739872068,0.0467592008058157,35.894053601339955,2,2
+dia_semana_domingo & fase_dia_Pleno dia & gravidade_binaria_Não Fatal,classificacao_acidente_Com Vítimas Feridas & fim_de_semana_Sim & uso_solo_Não,0.064321608040201,0.7272727272727274,4.065372829417774,0.0484997853589555,3.0107202680067013,3,3
+dia_semana_domingo & gravidade_binaria_Não Fatal & tipo_pista_Simples,classificacao_acidente_Com Vítimas Feridas & fim_de_semana_Sim & uso_solo_Não,0.0549413735343383,0.6978723404255319,3.9010279703562034,0.0408575541021691,2.7177436478165475,3,3
+fase_dia_Pleno dia & fim_de_semana_Sim & gravidade_binaria_Não Fatal & uso_solo_Não,classificacao_acidente_Com Vítimas Feridas & dia_semana_domingo,0.064321608040201,0.5013054830287207,3.886745108677224,0.0477726432273034,1.7466038745209471,4,2
+classificacao_acidente_Com Vítimas Feridas & dia_semana_domingo & fase_dia_Pleno dia,fim_de_semana_Sim & gravidade_binaria_Não Fatal & uso_solo_Não,0.064321608040201,0.8240343347639487,3.8675196372175895,0.0476903781891029,4.472092168157868,3,3
+classificacao_acidente_Com Vítimas Feridas & dia_semana_domingo & tipo_pista_Simples,fim_de_semana_Sim & gravidade_binaria_Não Fatal & uso_solo_Não,0.0549413735343383,0.8200000000000001,3.8485849056603776,0.0406656397565718,4.371859296482413,3,3

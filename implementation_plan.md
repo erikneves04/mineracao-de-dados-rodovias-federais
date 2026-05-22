@@ -620,12 +620,12 @@ Célula Markdown com:
 - Discussão sobre suporte mínimo e impacto no desbalanceamento de classes
 
 ### Critérios de Conclusão da Fase 5
-- [ ] Tabelas comparativas de regras com todas as métricas
-- [ ] Regras traduzidas para linguagem natural (top 10-20)
-- [ ] Análise de estabilidade temporal documentada
-- [ ] Disclaimer de causalidade presente
-- [ ] Seção de limitações escrita
-- [ ] Ambas as diretrizes de IA responsável operacionalizadas com código + análise
+- [x] Tabelas comparativas de regras com todas as métricas (top20 globais, top10 por cluster salvos)
+- [x] Regras traduzidas para linguagem natural (top 15-20 com antecedente <= 3 geradas e salvas em `top15_regras_traduzidas.csv`)
+- [x] Análise de estabilidade temporal documentada (regras cruzadas através dos 4 períodos; 9021 regras estáveis)
+- [x] Disclaimer de causalidade presente (Aviso forte em console e exportação textual advertindo "Correlação != Causalidade")
+- [x] Seção de limitações escrita (Limitações de variabilidade categórica contínua, fatores latentes e viés de seleção catalogados)
+- [x] Ambas as diretrizes de IA responsável operacionalizadas com código + análise
 
 ---
 
