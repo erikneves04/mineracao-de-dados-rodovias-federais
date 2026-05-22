@@ -267,11 +267,11 @@ Célula Markdown documentando:
 - Problemas de qualidade identificados
 
 ### Critérios de Conclusão da Fase 2
-- [ ] Pelo menos 10 visualizações produzidas
-- [ ] Distribuição de gravidade documentada com %
-- [ ] Análise temporal completa (dia, fase, mês)
-- [ ] Cramér's V ou tabela de contingência entre categóricas e gravidade
-- [ ] Lista de hipóteses formuladas
+- [x] Pelo menos 10 visualizações produzidas (17 visualizações geradas e salvas em `outputs/figuras/`)
+- [x] Distribuição de gravidade documentada com % (seção 2.2: Com Vítimas Feridas 79.3%, Sem Vítimas 13.6%, Com Vítimas Fatais 7.1%)
+- [x] Análise temporal completa (dia, fase, mês) (seções 2.3.1 a 2.3.6)
+- [x] Cramér's V ou tabela de contingência entre categóricas e gravidade (seções 2.6.2 e 2.6.3)
+- [x] Lista de hipóteses formuladas (seção 2.8 com 5 hipóteses H1-H5)
 
 ---
 
@@ -380,12 +380,12 @@ df.to_pickle('../data/processed/df_limpo.pkl')
 ```
 
 ### Critérios de Conclusão da Fase 3
-- [ ] Zero valores nulos nas colunas usadas
-- [ ] Todas as features categóricas padronizadas
-- [ ] Features derivadas criadas e validadas
-- [ ] Representação transacional one-hot gerada
-- [ ] Itens filtrados (1% ≤ freq ≤ 99%)
-- [ ] Dados processados salvos em `data/processed/`
+- [x] Zero valores nulos nas colunas usadas (0 nulos nas 12 colunas transacionais)
+- [x] Todas as features categóricas padronizadas (12 colunas: 7+4+8+3+99+2+57+16+3+4+2+2 categorias)
+- [x] Features derivadas criadas e validadas (5 features: mes, faixa_horaria, fim_de_semana, gravidade_binaria, faixa_km)
+- [x] Representação transacional one-hot gerada (2,985 transações × 207 itens)
+- [x] Itens filtrados (1% ≤ freq ≤ 99%): 207 → 83 itens (124 raros removidos, 0 triviais)
+- [x] Dados processados salvos em `data/processed/` (df_limpo.pkl, transacional.pkl, transacional_completo.pkl, preparacao_metadata.json)
 
 ---
 

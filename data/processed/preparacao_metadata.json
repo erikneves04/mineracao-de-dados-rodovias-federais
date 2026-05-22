@@ -1,0 +1,33 @@
+{
+  "dataset_ativo": "por_ocorrencia",
+  "filtro_uf": "MG",
+  "n_registros": 2985,
+  "n_colunas_df": 35,
+  "colunas_transacionais": [
+    "dia_semana",
+    "fase_dia",
+    "condicao_metereologica",
+    "tipo_pista",
+    "tracado_via",
+    "uso_solo",
+    "causa_acidente",
+    "tipo_acidente",
+    "classificacao_acidente",
+    "faixa_horaria",
+    "fim_de_semana",
+    "gravidade_binaria"
+  ],
+  "n_itens_total": 207,
+  "n_itens_filtrado": 83,
+  "n_itens_raros_removidos": 124,
+  "n_itens_triviais_removidos": 0,
+  "min_freq": 0.01,
+  "max_freq": 0.99,
+  "features_engenheiradas": [
+    "mes",
+    "faixa_horaria",
+    "fim_de_semana",
+    "gravidade_binaria",
+    "faixa_km"
+  ]
+}
