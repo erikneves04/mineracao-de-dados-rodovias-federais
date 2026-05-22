@@ -683,10 +683,10 @@ outputs/
 ```
 
 ### Critérios de Conclusão da Fase 6
-- [ ] Pelo menos 10 visualizações de alta qualidade geradas
-- [ ] Figuras salvas em 300 dpi
-- [ ] Tabelas exportadas em formato compatível com LaTeX
-- [ ] Todos os resultados salvos em `outputs/`
+- [x] Pelo menos 10 visualizações de alta qualidade geradas (Mapas, Grafos, Scatter, Radares, etc. gerados)
+- [x] Figuras salvas em 300 dpi (Configuração de DPI aplicada em todos os outputs)
+- [x] Tabelas exportadas em formato compatível com LaTeX e Markdown (`regras_top15_latex.tex`, `regras_top15_markdown.md`)
+- [x] Todos os resultados salvos em `outputs/`
 
 ---
 
