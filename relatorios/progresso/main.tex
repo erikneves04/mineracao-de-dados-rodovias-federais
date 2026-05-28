@@ -97,6 +97,23 @@ O projeto utiliza três arquivos CSV disponibilizados pela PRF (2026), selecion�
 
 Após aplicar o filtro geográfico UF = MG, obtivemos 2.985 ocorrências e 36 colunas analíticas. Na preparação transacional, selecionamos 12 atributos categóricos --- incluindo features engenheiradas como \texttt{faixa\_horaria} e \texttt{gravidade\_binaria} ---, o que produziu inicialmente 207 itens no formato one-hot \texttt{coluna=valor}. Para evitar a explosão de itens raros ou dominantes, aplicamos filtragem de frequência entre 1\% e 99\%, reduzindo o conjunto final a 83 itens válidos para mineração.
 
+\subsection{Dicionário mínimo de variáveis (para leitura do relatório)}
+
+Nesta seção, resumimos as variáveis centrais utilizadas na análise exploratória e que compõem os itens transacionais empregados na mineração:
+\begin{itemize}[leftmargin=*]
+    \item \texttt{classificacao\_acidente}: gravidade do acidente (``Sem Vítimas'', ``Com Vítimas Feridas'', ``Com Vítimas Fatais'').
+    \item \texttt{tipo\_acidente}: categoria do evento (o \textit{que} ocorreu, por exemplo colisões, saída de leito carroçável, atropelamento).
+    \item \texttt{causa\_acidente}: causa atribuída (o \textit{porquê} do evento segundo o registro, por exemplo ausência de reação, velocidade incompatível).
+    \item \texttt{fase\_dia}: fase do dia (ex.: plena noite, amanhecer, pleno dia).
+    \item \texttt{dia\_semana}: dia da semana da ocorrência.
+    \item \texttt{condicao\_metereologica}: condição meteorológica (ex.: céu claro, chuva).
+    \item \texttt{tipo\_pista}, \texttt{tracado\_via}, \texttt{sentido\_via}: características da via.
+    \item \texttt{uso\_solo}: indicador binário do entorno da via no dataset de ocorrência (valores \texttt{Sim}/\texttt{Não}). Neste relatório, tratamos \texttt{Sim} como contexto \textit{urbano} e \texttt{Não} como contexto \textit{rural}, em linha com a leitura exploratória do grupo sobre a codificação do campo pela PRF.
+    \item \texttt{faixa\_horaria}: discretização do horário em faixas (madrugada/manhã/tarde/noite), derivada de \texttt{horario}.
+    \item \texttt{fim\_de\_semana}: indicador derivado de \texttt{dia\_semana}.
+    \item \texttt{gravidade\_binaria}: indicador derivado para separar acidentes fatais vs.\ não fatais, usado para apoiar filtros e comparações.
+\end{itemize}
+
 \subsection{Resultados Preliminares da EDA}
 
 A Tabela~\ref{tab:gravidade} resume a distribuição da variável-alvo. Observa-se um desbalanceamento marcante: apenas 7,1\% dos acidentes são classificados como fatais, enquanto a grande maioria (79,3\%) resulta em vítimas feridas. Esse perfil de classes impactará diretamente a calibração do suporte mínimo no FP-Growth, pois padrões associados à gravidade fatal tenderão a apresentar suportes mais baixos e exigirão atenção especial na interpretação dos resultados.
@@ -118,6 +135,9 @@ A Tabela~\ref{tab:gravidade} resume a distribuição da variável-alvo. Observa-
 
 A análise de associação entre variáveis categóricas e a gravidade, conduzida via Cramér's~V, indicou que \texttt{tipo\_acidente} ($V = 0{,}399$), \texttt{causa\_acidente} ($V = 0{,}325$) e \texttt{tracado\_via} ($V = 0{,}175$) são os atributos mais fortemente associados à classificação do acidente. Esses resultados reforçam a relevância de incluir tais variáveis na representação transacional e orientam a expectativa de que regras envolvendo tipologia e causa do evento tendam a ser mais informativas do que combinações puramente temporais ou geográficas.
 
+\paragraph{Como ler os gráficos a seguir.}
+Em gráficos \textbf{normalizados}, cada barra/linha representa uma categoria (por exemplo, um tipo de acidente) e soma 100\%. Esses gráficos permitem comparar \textit{composição} de gravidade entre categorias, mas não substituem análises de volume (frequências absolutas). Em todas as interpretações, enfatizamos que associação estatística não implica causalidade.
+
 \begin{figure}[H]
     \centering
     \begin{subfigure}[b]{0.48\textwidth}
@@ -135,11 +155,71 @@ A análise de associação entre variáveis categóricas e a gravidade, conduzid
     \label{fig:eda}
 \end{figure}
 
+\subsubsection*{Tipos de acidente (Top 10 + Outros)}
+
+A Tabela~\ref{tab:top_tipos} lista os tipos de acidente mais frequentes no recorte (MG). A Figura~\ref{fig:top_tipos} mostra a distribuição absoluta, enquanto a Figura~\ref{fig:tipos_norm} mostra a composição de gravidade \textbf{normalizada} por tipo, evidenciando como a proporção de fatalidade varia entre categorias.
+
+\input{tabelas/top_tipos_acidente.tex}
+
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.85\textwidth]{top_causas_gravidade.png}
-    \caption{Principais causas de acidente por classificação de gravidade.}
+    \begin{subfigure}[b]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{top_tipos_acidente.png}
+        \caption{Top tipos (frequência).}
+        \label{fig:top_tipos}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{tipos_acidente_por_gravidade_norm.png}
+        \caption{Gravidade por tipo (normalizado).}
+        \label{fig:tipos_norm}
+    \end{subfigure}
+    \caption{Tipos de acidente no recorte MG (Top 10 + Outros).}
+    \label{fig:tipos}
+\end{figure}
+
+\subsubsection*{Causas do acidente (Top 12 + Outros)}
+
+Complementarmente, analisamos \texttt{causa\_acidente}, que representa a causa atribuída no registro (diferente do \textit{tipo} do evento). A Tabela~\ref{tab:top_causas} sumariza as causas mais frequentes, e a Figura~\ref{fig:causas_norm} apresenta a composição de gravidade normalizada por causa.
+
+\input{tabelas/top_causas.tex}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{top_causas_gravidade.png}
+        \caption{Causas por gravidade (visão absoluta).}
+        \label{fig:causas_abs}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{causas_por_gravidade_norm.png}
+        \caption{Gravidade por causa (normalizado).}
+        \label{fig:causas_norm}
+    \end{subfigure}
+    \caption{Causas do acidente no recorte MG (Top 12 + Outros).}
     \label{fig:causas}
+\end{figure}
+
+\subsubsection*{Condições de via e perfil temporal}
+
+A Figura~\ref{fig:tipo_pista_heat} resume como a composição de gravidade varia entre os tipos de pista mais frequentes, enquanto a Figura~\ref{fig:heat_fatal} mostra o percentual de acidentes fatais em janelas \texttt{dia\_semana} $\times$ \texttt{fase\_dia}, permitindo comparar \textit{risco relativo} de fatalidade sem confundir com volume total de ocorrências.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{tipo_pista_x_gravidade_heatmap.png}
+        \caption{Tipo de pista $\times$ gravidade (proporção).}
+        \label{fig:tipo_pista_heat}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.49\textwidth}
+        \includegraphics[width=\textwidth]{heatmap_percentual_fatais_temporal.png}
+        \caption{\% de fatais por dia $\times$ fase do dia.}
+        \label{fig:heat_fatal}
+    \end{subfigure}
+    \caption{Condições de via e perfil temporal no recorte MG.}
+    \label{fig:via_tempo}
 \end{figure}
 
 Foram produzidas 17 visualizações exploratórias no notebook~02, abrangendo distribuições temporais, geográficas, categóricas e correlações entre variáveis numéricas. Conjuntamente, esses achados subsidiam a seleção de atributos transacionais, a calibragem de parâmetros de mineração e a formulação das hipóteses H1--H5 descritas acima.
