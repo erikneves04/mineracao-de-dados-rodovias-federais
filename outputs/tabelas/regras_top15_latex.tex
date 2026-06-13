@@ -1,21 +1,21 @@
-\begin{tabular}{llrrr}
+\begin{tabular}{@{}p{7cm}rrr@{}}
 \toprule
-antecedents_str & consequents_str & support & confidence & lift \\
+Regra & Sup. & Conf. & Lift \\
 \midrule
-classificacao_acidente_Com Vítimas Fatais & gravidade_binaria_Fatal & uso_solo_Não & 0.054 & 0.768 & 14.147 \\
-gravidade_binaria_Fatal & classificacao_acidente_Com Vítimas Fatais & uso_solo_Não & 0.054 & 0.768 & 14.147 \\
-gravidade_binaria_Fatal & classificacao_acidente_Com Vítimas Fatais & 0.071 & 1.000 & 14.147 \\
-classificacao_acidente_Com Vítimas Fatais & uso_solo_Não & gravidade_binaria_Fatal & 0.054 & 1.000 & 14.147 \\
-gravidade_binaria_Fatal & uso_solo_Não & classificacao_acidente_Com Vítimas Fatais & 0.054 & 1.000 & 14.147 \\
-classificacao_acidente_Com Vítimas Fatais & gravidade_binaria_Fatal & 0.071 & 1.000 & 14.147 \\
-dia_semana_domingo & fase_dia_Pleno dia & faixa_horaria_Tarde & fim_de_semana_Sim & gravidade_binaria_Não Fatal & 0.054 & 0.581 & 5.797 \\
-faixa_horaria_Tarde & fim_de_semana_Sim & gravidade_binaria_Não Fatal & dia_semana_domingo & fase_dia_Pleno dia & 0.054 & 0.542 & 5.797 \\
-dia_semana_domingo & fase_dia_Pleno dia & gravidade_binaria_Não Fatal & faixa_horaria_Tarde & fim_de_semana_Sim & 0.054 & 0.614 & 5.689 \\
-faixa_horaria_Tarde & fim_de_semana_Sim & dia_semana_domingo & fase_dia_Pleno dia & gravidade_binaria_Não Fatal & 0.054 & 0.503 & 5.689 \\
-dia_semana_domingo & fase_dia_Pleno dia & faixa_horaria_Tarde & fim_de_semana_Sim & 0.057 & 0.613 & 5.682 \\
-faixa_horaria_Tarde & fim_de_semana_Sim & dia_semana_domingo & fase_dia_Pleno dia & 0.057 & 0.531 & 5.682 \\
-dia_semana_domingo & faixa_horaria_Tarde & fase_dia_Pleno dia & fim_de_semana_Sim & gravidade_binaria_Não Fatal & 0.054 & 0.926 & 5.483 \\
-dia_semana_domingo & faixa_horaria_Tarde & gravidade_binaria_Não Fatal & fase_dia_Pleno dia & fim_de_semana_Sim & 0.054 & 0.982 & 5.468 \\
-dia_semana_domingo & faixa_horaria_Tarde & fase_dia_Pleno dia & fim_de_semana_Sim & 0.057 & 0.977 & 5.442 \\
+Quando fase=dia Plena Noite E tipo=acidente Atropelamento de Pedestre E uso=solo Não, entao desfecho fatal. [Suporte: 0. & 0.005 & 0.426 & 5.44 \\
+Quando causa=acidente Transitar na contramão E tipo=acidente Colisão frontal E uso=solo Não, entao desfecho fatal. [Supo & 0.007 & 0.423 & 5.40 \\
+Quando causa=acidente Transitar na contramão E tipo=acidente Colisão frontal E tipo=pista Simples, entao desfecho fatal. & 0.008 & 0.389 & 4.97 \\
+Quando condicao=metereologica Céu Claro E tipo=acidente Colisão frontal E uso=solo Não, entao desfecho fatal. [Suporte:  & 0.011 & 0.377 & 4.82 \\
+Quando fase=dia Plena Noite E tipo=acidente Colisão frontal E uso=solo Não, entao desfecho fatal. [Suporte: 0.7% | Confi & 0.007 & 0.376 & 4.80 \\
+Quando tipo=acidente Colisão frontal E tracado=via Reta E uso=solo Não, entao desfecho fatal. [Suporte: 0.9% | Confianca & 0.009 & 0.375 & 4.79 \\
+Quando fim=de semana Sim E tipo=acidente Colisão frontal E uso=solo Não, entao desfecho fatal. [Suporte: 0.8% | Confianc & 0.008 & 0.373 & 4.76 \\
+Quando causa=acidente Transitar na contramão E condicao=metereologica Céu Claro E tipo=acidente Colisão frontal, entao d & 0.005 & 0.373 & 4.76 \\
+Quando causa=acidente Transitar na contramão E tipo=acidente Colisão frontal, entao desfecho fatal. [Suporte: 0.8% | Con & 0.008 & 0.371 & 4.73 \\
+Quando fase=dia Plena Noite E tipo=acidente Atropelamento de Pedestre, entao desfecho fatal. [Suporte: 0.9% | Confianca: & 0.009 & 0.367 & 4.69 \\
+Quando tipo=acidente Atropelamento de Pedestre E uso=solo Não, entao desfecho fatal. [Suporte: 0.8% | Confianca: 36.3% | & 0.008 & 0.363 & 4.63 \\
+Quando tipo=acidente Colisão frontal E tipo=pista Simples E uso=solo Não, entao desfecho fatal. [Suporte: 1.9% | Confian & 0.019 & 0.358 & 4.57 \\
+Quando tipo=acidente Colisão frontal E uso=solo Não, entao desfecho fatal. [Suporte: 2.0% | Confianca: 35.1% | Lift: 4.4 & 0.020 & 0.351 & 4.49 \\
+Quando fim=de semana Sim E tipo=acidente Colisão frontal E tipo=pista Simples, entao desfecho fatal. [Suporte: 0.8% | Co & 0.008 & 0.347 & 4.43 \\
+Quando condicao=metereologica Céu Claro E fase=dia Plena Noite E tipo=acidente Colisão frontal, entao desfecho fatal. [S & 0.005 & 0.344 & 4.39 \\
 \bottomrule
 \end{tabular}

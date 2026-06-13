@@ -55,7 +55,7 @@ Com base na proposta inicial e na análise exploratória conduzida, os objetivos
 
 \subsection{Escopo e Decisões de Recorte}
 
-O recorte analítico concentra-se em Minas Gerais sobre a base \texttt{datatran2026\_agrupados\_por\_ocorrencia.csv}, em que cada registro corresponde a uma ocorrência única de acidente. Essa granularidade foi escolhida por ser a mais natural para a representação transacional exigida pelo FP-Growth, uma vez que cada linha pode ser tratada como uma transação composta por múltiplos itens categóricos. Após filtragem por UF, o conjunto analisado totaliza 2.985 ocorrências no período considerado.
+O recorte analítico concentra-se em Minas Gerais, com expansão para \textbf{multi-ano (2023 em diante, pós-pandemia)} via concatenação de arquivos \texttt{datatran<ano>.csv}. Cada registro corresponde a uma ocorrência única de acidente. Após revisão metodológica (Pacote~A), restringimos a análise a acidentes \textbf{com vítimas} e passamos a minerar regras \textbf{contexto $\rightarrow$ desfecho} (Fatal vs.\ Ferido), evitando tautologias entre \texttt{classificacao\_acidente} e \texttt{gravidade\_binaria}. Com o arquivo parcial de 2026 (2.985 ocorrências em MG), obtemos 2.579 transações após o subset; a base completa multi-ano dependerá dos CSVs 2023--2025 (ver \texttt{data/README.md}).
 
 Quanto aos métodos, o FP-Growth constitui a técnica principal para extração de itemsets frequentes e geração de regras de associação. O K-Means, por sua vez, será empregado de forma complementar como etapa de segmentação prévia, permitindo investigar se padrões locais --- por exemplo, em trechos urbanos versus rurais --- permanecem ocultos quando se analisa apenas a base global.
 
@@ -95,7 +95,10 @@ A confirmação ou refutação dessas hipóteses mediante regras de associação
 
 O projeto utiliza três arquivos CSV disponibilizados pela PRF (2026), selecionáveis por meio de um dicionário central no notebook de setup. A base por ocorrência (\texttt{datatran2026\_agrupados\_por\_ocorrencia.csv}) contém 30 colunas e cerca de 23.475 registros nacionais; a base por pessoa (\texttt{acidentes2026\_agrupados\_por\_pessoa.csv}) reúne 35 colunas e aproximadamente 64.125 registros, incluindo variáveis demográficas; e a base de todas causas e tipos (\texttt{acidentes2026\_todas\_causas\_tipos.csv}) expande multicausas em 37 colunas e cerca de 196.099 registros. Para este estudo, adotamos a granularidade por ocorrência como dataset principal.
 
-Após aplicar o filtro geográfico UF = MG, obtivemos 2.985 ocorrências e 36 colunas analíticas. Na preparação transacional, selecionamos 12 atributos categóricos --- incluindo features engenheiradas como \texttt{faixa\_horaria} e \texttt{gravidade\_binaria} ---, o que produziu inicialmente 207 itens no formato one-hot \texttt{coluna=valor}. Para evitar a explosão de itens raros ou dominantes, aplicamos filtragem de frequência entre 1\% e 99\%, reduzindo o conjunto final a 83 itens válidos para mineração.
+Após aplicar o filtro geográfico UF = MG, obtivemos 2.985 ocorrências (2026 parcial). Na preparação redesenhada (Pacote~A), selecionamos \textbf{8 colunas de contexto} (\texttt{condicao\_metereologica}, \texttt{tipo\_pista}, \texttt{tracado\_via}, \texttt{uso\_solo}, \texttt{causa\_acidente}, \texttt{tipo\_acidente}, \texttt{fase\_dia}, \texttt{fim\_de\_semana}) e o alvo \texttt{desfecho} $\in \{$Fatal, Ferido$\}$, excluindo \texttt{gravidade\_binaria}, \texttt{classificacao\_acidente}, \texttt{faixa\_horaria} e \texttt{dia\_semana} dos itens transacionais. Com filtro de frequência 0,5\%--99\%, obtemos 79 itens válidos entre 2.579 transações (com vítimas).
+
+\paragraph{Resultado preliminar não trivial.}
+Após filtrar regras com consequente \texttt{desfecho\_Fatal} e antecedentes exclusivamente contextuais, identificamos padrões interpretáveis, por exemplo: \{Transitar na contramão, Colisão frontal, Zona rural\} $\rightarrow$ Fatal (suporte 0,9\%, confiança 52,4\%, lift 6,40) --- alinhado parcialmente à hipótese H3.
 
 \subsection{Dicionário mínimo de variáveis (para leitura do relatório)}
 
@@ -276,11 +279,9 @@ A fase de Data Preparation, implementada no notebook \texttt{03\_preparacao\_dad
 
 A representação transacional converte cada ocorrência em um conjunto de itens binários no formato \texttt{coluna=valor}. Após a codificação one-hot, aplicamos filtragem de itens com frequência inferior a 1\% ou superior a 99\%, reduzindo a dimensionalidade de 207 para 83 itens. Os artefatos processados são persistidos em \texttt{data/processed/} (\texttt{df\_limpo.pkl} e \texttt{transacional.pkl}) para consumo pelos notebooks de modelagem e avaliação.
 
-\subsection{Modeling --- Planejado}
+\subsection{Modeling --- Implementado (Pacote A)}
 
-A fase de Modeling será conduzida no notebook \texttt{04\_modelagem.ipynb}. A infraestrutura de mineração já foi montada e validada em execução piloto; os experimentos formais previstos incluem mineração global via FP-Growth sobre a base transacional completa, com \texttt{min\_support} calibrado a partir do desbalanceamento observado na EDA. A partir dos itemsets frequentes, geraremos regras de associação filtrando associações com lift superior a 1, ordenando-as por relevância e extraindo separadamente aquelas cujo consequente indica gravidade fatal.
-
-Como etapa complementar, aplicaremos K-Means sobre atributos categóricos codificados e padronizados, determinando o número de clusters por meio do método do cotovelo e do silhouette score. A mineração será então repetida de forma independente em cada segmento, buscando capturar padrões locais que possam estar mascarados na análise global. Por fim, executaremos FP-Growth em janelas mensais para avaliar a estabilidade temporal dos padrões identificados.
+A fase de Modeling foi reimplementada no módulo \texttt{src/} e no notebook \texttt{04\_modelagem.ipynb} (seção V2). A mineração restrita aplica FP-Growth com \texttt{min\_support=0,005}, filtra regras cujo consequente é \texttt{desfecho\_Fatal} e cujos antecedentes contêm apenas itens de contexto (prefixo \texttt{ctx\_}), poda regras não minimais e ranqueia por lift, leverage e conviction. Com dados de 2026 (parcial), obtivemos regras contextuais não tautológicas; a consolidação multi-ano (2023--2025) ampliará o suporte estatístico e a análise de estabilidade temporal.
 
 \subsection{Evaluation --- Planejado}
 

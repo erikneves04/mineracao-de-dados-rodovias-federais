@@ -1,33 +1,26 @@
 {
-  "dataset_ativo": "por_ocorrencia",
-  "filtro_uf": "MG",
-  "n_registros": 2985,
-  "n_colunas_df": 35,
-  "colunas_transacionais": [
-    "dia_semana",
-    "fase_dia",
+  "n_registros": 26899,
+  "n_itens_total": 455,
+  "n_itens_filtrado": 78,
+  "min_freq": 0.005,
+  "max_freq": 0.99,
+  "colunas_contexto": [
     "condicao_metereologica",
     "tipo_pista",
     "tracado_via",
     "uso_solo",
     "causa_acidente",
     "tipo_acidente",
-    "classificacao_acidente",
-    "faixa_horaria",
-    "fim_de_semana",
-    "gravidade_binaria"
+    "fase_dia",
+    "fim_de_semana"
   ],
-  "n_itens_total": 207,
-  "n_itens_filtrado": 83,
-  "n_itens_raros_removidos": 124,
-  "n_itens_triviais_removidos": 0,
-  "min_freq": 0.01,
-  "max_freq": 0.99,
-  "features_engenheiradas": [
-    "mes",
-    "faixa_horaria",
-    "fim_de_semana",
-    "gravidade_binaria",
-    "faixa_km"
+  "pct_fatal": 7.83,
+  "pct_ferido": 92.17,
+  "design": "pacote_a_contexto_para_desfecho",
+  "anos": [
+    2023,
+    2024,
+    2025,
+    2026
   ]
 }
