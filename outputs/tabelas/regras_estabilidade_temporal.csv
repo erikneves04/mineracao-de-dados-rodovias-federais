@@ -1,0 +1,2 @@
+regra,n_anos_presente,n_anos_total,freq_relativa,status,lift_medio,confianca_media,anos
+"ctx_causa_acidente_Transitar_na_contramão, ctx_tipo_acidente_Colisão_frontal, ctx_uso_solo_Não => desfecho_Fatal",1,1,1.0,estavel,6.4024,0.5238,[2026]

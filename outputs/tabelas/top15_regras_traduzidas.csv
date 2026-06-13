@@ -1,16 +1,2 @@
-explicacao_natural
-"Quando acidente_Com Vítimas Fatais, então Acidente Fatal E solo_Não. [Suporte: 5.4% | Confiança: 76.8% | Lift: 14.1]"
-"Quando Acidente Fatal, então acidente_Com Vítimas Fatais E solo_Não. [Suporte: 5.4% | Confiança: 76.8% | Lift: 14.1]"
-"Quando Acidente Fatal, então acidente_Com Vítimas Fatais. [Suporte: 7.1% | Confiança: 100.0% | Lift: 14.1]"
-"Quando acidente_Com Vítimas Fatais E solo_Não, então Acidente Fatal. [Suporte: 5.4% | Confiança: 100.0% | Lift: 14.1]"
-"Quando Acidente Fatal E solo_Não, então acidente_Com Vítimas Fatais. [Suporte: 5.4% | Confiança: 100.0% | Lift: 14.1]"
-"Quando acidente_Com Vítimas Fatais, então Acidente Fatal. [Suporte: 7.1% | Confiança: 100.0% | Lift: 14.1]"
-"Quando semana_domingo E dia_Pleno dia, então horaria_Tarde E Em um fim de semana E Acidente Não Fatal. [Suporte: 5.4% | Confiança: 58.1% | Lift: 5.8]"
-"Quando horaria_Tarde E Em um fim de semana E Acidente Não Fatal, então semana_domingo E dia_Pleno dia. [Suporte: 5.4% | Confiança: 54.2% | Lift: 5.8]"
-"Quando semana_domingo E dia_Pleno dia E Acidente Não Fatal, então horaria_Tarde E Em um fim de semana. [Suporte: 5.4% | Confiança: 61.4% | Lift: 5.7]"
-"Quando horaria_Tarde E Em um fim de semana, então semana_domingo E dia_Pleno dia E Acidente Não Fatal. [Suporte: 5.4% | Confiança: 50.3% | Lift: 5.7]"
-"Quando semana_domingo E dia_Pleno dia, então horaria_Tarde E Em um fim de semana. [Suporte: 5.7% | Confiança: 61.3% | Lift: 5.7]"
-"Quando horaria_Tarde E Em um fim de semana, então semana_domingo E dia_Pleno dia. [Suporte: 5.7% | Confiança: 53.1% | Lift: 5.7]"
-"Quando semana_domingo E horaria_Tarde, então dia_Pleno dia E Em um fim de semana E Acidente Não Fatal. [Suporte: 5.4% | Confiança: 92.6% | Lift: 5.5]"
-"Quando semana_domingo E horaria_Tarde E Acidente Não Fatal, então dia_Pleno dia E Em um fim de semana. [Suporte: 5.4% | Confiança: 98.2% | Lift: 5.5]"
-"Quando semana_domingo E horaria_Tarde, então dia_Pleno dia E Em um fim de semana. [Suporte: 5.7% | Confiança: 97.7% | Lift: 5.4]"
+antecedents,consequents,antecedent support,consequent support,support,confidence,lift,representativity,leverage,conviction,zhangs_metric,jaccard,certainty,kulczynski,antecedents_str,consequents_str,n_antecedentes,explicacao_natural
+"frozenset({'ctx_causa_acidente_Transitar_na_contramão', 'ctx_tipo_acidente_Colisão_frontal', 'ctx_uso_solo_Não'})",frozenset({'desfecho_Fatal'}),0.016285381930981,0.08181465684373788,0.008530438154323382,0.523809523809524,6.40239223651546,1.0,0.0071980552200709615,1.928189220628151,0.8577776185186512,0.09523809523809523,0.48137870012870027,0.3140374633265629,"ctx_causa_acidente_Transitar_na_contramão, ctx_tipo_acidente_Colisão_frontal, ctx_uso_solo_Não",desfecho_Fatal,3,"Quando causa=acidente Transitar na contramão E tipo=acidente Colisão frontal E uso=solo Não, entao desfecho fatal. [Suporte: 0.9% | Confianca: 52.4% | Lift: 6.40]"
