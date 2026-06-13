@@ -2,6 +2,20 @@
 \toprule
 Regra & Sup. & Conf. & Lift \\
 \midrule
-Quando causa=acidente Transitar na contramão E tipo=acidente Colisão frontal E uso=solo Não, entao desfecho fatal. [Supo & 0.009 & 0.524 & 6.40 \\
+Quando fase=dia Plena Noite E tipo=acidente Atropelamento de Pedestre E uso=solo Não, entao desfecho fatal. [Suporte: 0. & 0.005 & 0.426 & 5.44 \\
+Quando causa=acidente Transitar na contramão E tipo=acidente Colisão frontal E uso=solo Não, entao desfecho fatal. [Supo & 0.007 & 0.423 & 5.40 \\
+Quando causa=acidente Transitar na contramão E tipo=acidente Colisão frontal E tipo=pista Simples, entao desfecho fatal. & 0.008 & 0.389 & 4.97 \\
+Quando condicao=metereologica Céu Claro E tipo=acidente Colisão frontal E uso=solo Não, entao desfecho fatal. [Suporte:  & 0.011 & 0.377 & 4.82 \\
+Quando fase=dia Plena Noite E tipo=acidente Colisão frontal E uso=solo Não, entao desfecho fatal. [Suporte: 0.7% | Confi & 0.007 & 0.376 & 4.80 \\
+Quando tipo=acidente Colisão frontal E tracado=via Reta E uso=solo Não, entao desfecho fatal. [Suporte: 0.9% | Confianca & 0.009 & 0.375 & 4.79 \\
+Quando fim=de semana Sim E tipo=acidente Colisão frontal E uso=solo Não, entao desfecho fatal. [Suporte: 0.8% | Confianc & 0.008 & 0.373 & 4.76 \\
+Quando causa=acidente Transitar na contramão E condicao=metereologica Céu Claro E tipo=acidente Colisão frontal, entao d & 0.005 & 0.373 & 4.76 \\
+Quando causa=acidente Transitar na contramão E tipo=acidente Colisão frontal, entao desfecho fatal. [Suporte: 0.8% | Con & 0.008 & 0.371 & 4.73 \\
+Quando fase=dia Plena Noite E tipo=acidente Atropelamento de Pedestre, entao desfecho fatal. [Suporte: 0.9% | Confianca: & 0.009 & 0.367 & 4.69 \\
+Quando tipo=acidente Atropelamento de Pedestre E uso=solo Não, entao desfecho fatal. [Suporte: 0.8% | Confianca: 36.3% | & 0.008 & 0.363 & 4.63 \\
+Quando tipo=acidente Colisão frontal E tipo=pista Simples E uso=solo Não, entao desfecho fatal. [Suporte: 1.9% | Confian & 0.019 & 0.358 & 4.57 \\
+Quando tipo=acidente Colisão frontal E uso=solo Não, entao desfecho fatal. [Suporte: 2.0% | Confianca: 35.1% | Lift: 4.4 & 0.020 & 0.351 & 4.49 \\
+Quando fim=de semana Sim E tipo=acidente Colisão frontal E tipo=pista Simples, entao desfecho fatal. [Suporte: 0.8% | Co & 0.008 & 0.347 & 4.43 \\
+Quando condicao=metereologica Céu Claro E fase=dia Plena Noite E tipo=acidente Colisão frontal, entao desfecho fatal. [S & 0.005 & 0.344 & 4.39 \\
 \bottomrule
 \end{tabular}

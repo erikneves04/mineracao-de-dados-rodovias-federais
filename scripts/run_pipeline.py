@@ -75,6 +75,7 @@ def main():
 
     with open(PROCESSED_DIR / "rules_por_ano.pkl", "wb") as f:
         pickle.dump(rules_por_ano, f)
+    rules_fatal.to_pickle(PROCESSED_DIR / "rules_fatal.pkl")
 
     print("\n" + disclaimer())
     print("\n[OK] Pipeline concluido.")

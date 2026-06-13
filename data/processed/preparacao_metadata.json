@@ -1,7 +1,7 @@
 {
-  "n_registros": 2579,
-  "n_itens_total": 186,
-  "n_itens_filtrado": 79,
+  "n_registros": 26899,
+  "n_itens_total": 455,
+  "n_itens_filtrado": 78,
   "min_freq": 0.005,
   "max_freq": 0.99,
   "colunas_contexto": [
@@ -14,10 +14,13 @@
     "fase_dia",
     "fim_de_semana"
   ],
-  "pct_fatal": 8.18,
-  "pct_ferido": 91.82,
+  "pct_fatal": 7.83,
+  "pct_ferido": 92.17,
   "design": "pacote_a_contexto_para_desfecho",
   "anos": [
+    2023,
+    2024,
+    2025,
     2026
   ]
 }

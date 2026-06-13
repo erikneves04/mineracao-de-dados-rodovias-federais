@@ -73,6 +73,15 @@ def harmonizar_dataframe(df: pd.DataFrame, ano: int) -> pd.DataFrame:
     }
     out["classificacao_acidente"] = out["classificacao_acidente"].replace(mapa)
     out["data_inversa"] = pd.to_datetime(out["data_inversa"], errors="coerce")
+
+    num_cols = [
+        "br", "km", "pessoas", "mortos", "feridos_leves", "feridos_graves",
+        "ilesos", "ignorados", "feridos", "veiculos", "latitude", "longitude",
+    ]
+    for col in num_cols:
+        if col in out.columns:
+            out[col] = pd.to_numeric(out[col], errors="coerce")
+
     return out
 
 

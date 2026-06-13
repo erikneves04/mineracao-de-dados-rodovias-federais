@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+from itertools import combinations
 
 import pandas as pd
 from mlxtend.frequent_patterns import association_rules, fpgrowth
@@ -11,6 +12,7 @@ from src.config import (
     ITEM_ALVO_FATAL,
     MAX_ANTECEDENTES,
     MIN_CONFIDENCE,
+    MIN_CONFIDENCE_FATAL,
     MIN_COUNT_ABS,
     MIN_LIFT,
     MIN_SUPPORT,
@@ -35,6 +37,76 @@ def extrair_itemsets_e_regras(df_onehot, min_support=MIN_SUPPORT):
     rules = association_rules(itemsets, metric="confidence", min_threshold=MIN_CONFIDENCE)
     rules = rules[rules["lift"] > MIN_LIFT].sort_values("lift", ascending=False).reset_index(drop=True)
     return itemsets, rules, elapsed
+
+
+def _support_conjunto(df_onehot: pd.DataFrame, items: frozenset) -> float:
+    if len(items) == 0:
+        return 0.0
+    cols = list(items)
+    return df_onehot[cols].all(axis=1).mean()
+
+
+def gerar_regras_contexto_para_fatal(
+    df_onehot: pd.DataFrame,
+    itemsets: pd.DataFrame,
+    consequente: str = ITEM_ALVO_FATAL,
+    max_antecedentes: int = MAX_ANTECEDENTES,
+    min_confidence: float = MIN_CONFIDENCE_FATAL,
+    min_lift: float = MIN_LIFT,
+    min_count_abs: int = MIN_COUNT_ABS,
+) -> pd.DataFrame:
+    """
+    Gera regras contexto -> Fatal a partir de itemsets frequentes.
+    Necessario porque association_rules tende a colocar Fatal no antecedente.
+    """
+    n_total = len(df_onehot)
+    p_consequente = df_onehot[consequente].mean() if consequente in df_onehot.columns else 0
+    if p_consequente == 0:
+        return pd.DataFrame()
+
+    rows = []
+    for _, row in itemsets.iterrows():
+        items = row["itemsets"]
+        if not isinstance(items, frozenset) or consequente not in items:
+            continue
+        ctx = [i for i in items if is_item_contexto(i)]
+        if not ctx:
+            continue
+
+        sup_joint = row["support"]
+        count_joint = sup_joint * n_total
+        if count_joint < min_count_abs:
+            continue
+
+        max_k = min(len(ctx), max_antecedentes)
+        for k in range(1, max_k + 1):
+            for ante_tuple in combinations(ctx, k):
+                ante = frozenset(ante_tuple)
+                sup_ante = _support_conjunto(df_onehot, ante)
+                if sup_ante == 0:
+                    continue
+                conf = sup_joint / sup_ante
+                lift = conf / p_consequente
+                if conf < min_confidence or lift < min_lift:
+                    continue
+                rows.append({
+                    "antecedents": ante,
+                    "consequents": frozenset({consequente}),
+                    "antecedent support": sup_ante,
+                    "consequent support": p_consequente,
+                    "support": sup_joint,
+                    "confidence": conf,
+                    "lift": lift,
+                    "leverage": sup_joint - sup_ante * p_consequente,
+                })
+
+    if not rows:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(rows)
+    df = df.sort_values(["lift", "confidence", "support"], ascending=False)
+    df = df.drop_duplicates(subset=["antecedents", "consequents"], keep="first")
+    return df.reset_index(drop=True)
 
 
 def filtrar_regras_contexto_para_alvo(rules, consequente_alvo=ITEM_ALVO_FATAL, max_antecedentes=MAX_ANTECEDENTES, min_count_abs=MIN_COUNT_ABS, n_total=None):
@@ -82,7 +154,9 @@ def adicionar_colunas_legiveis(rules: pd.DataFrame) -> pd.DataFrame:
 def minerar_regras_fatais(df_onehot, min_support=MIN_SUPPORT, min_count_abs=MIN_COUNT_ABS):
     n_total = len(df_onehot)
     itemsets, rules_all, _ = extrair_itemsets_e_regras(df_onehot, min_support)
-    rules_ctx = filtrar_regras_contexto_para_alvo(rules_all, min_count_abs=min_count_abs, n_total=n_total)
+    rules_ctx = gerar_regras_contexto_para_fatal(
+        df_onehot, itemsets, min_count_abs=min_count_abs
+    )
     rules_ctx = adicionar_colunas_legiveis(podar_regras_nao_minimais(rules_ctx))
     return itemsets, rules_all, rules_ctx
 
