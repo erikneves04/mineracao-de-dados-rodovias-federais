@@ -1,0 +1,4 @@
+ano,n_ocorrencias,n_com_vitimas,n_alta_gravidade,n_fatais,pct_fatais,pct_com_vitimas,pct_alta_gravidade_com_vitimas,data_min,data_max,arquivo
+2023,9007,7866,2605,608,6.75,87.33,33.12,2023-01-01,2023-12-31,datatran2023.csv
+2024,9296,8091,2684,640,6.88,87.04,33.17,2024-01-01,2024-12-31,datatran2024.csv
+2025,9570,8363,2867,647,6.76,87.39,34.28,2025-01-01,2025-12-31,datatran2025.csv

@@ -6,7 +6,7 @@
 \usepackage[T1]{fontenc}
 \usepackage[brazilian]{babel}
 \usepackage{lmodern}
-\usepackage[orientation=portrait,size=a1,scale=0.95]{beamerposter}
+\usepackage[orientation=portrait,size=a1,scale=1.00]{beamerposter}
 \usetheme{gemini}
 \usecolortheme{ufmg}
 \usepackage{graphicx}
@@ -40,7 +40,7 @@
 }
 
 % legenda interpretativa sob figuras
-\newcommand{\fcap}[1]{\\[0.3ex]{\footnotesize\itshape #1}}
+\newcommand{\fcap}[1]{\\[0.3ex]{\small\itshape #1}}
 
 % fluxograma do pipeline (sem tikz): etapa com titulo + sublegenda
 \newcommand{\pipestage}[2]{%
@@ -55,7 +55,7 @@
 % destaque numerico inline
 \newcommand{\hl}[1]{{\color{ufmgred}\textbf{#1}}}
 
-\title{Mineração de Regras de Associação em\\Acidentes em Rodovias Federais (MG)}
+\title{Mineração de Regras de Associação em\\Acidentes de Alta Gravidade em Rodovias Federais (MG)}
 
 \author{%
   Erik Roberto Reis Neves \enspace$\cdot$\enspace
@@ -71,10 +71,8 @@
 
 \footercontent{%
   \footnotesize
-  Métodos: Agrawal \& Srikant (1994) $\cdot$ Han et al.\ (FP-Growth, 2000) $\cdot$ Wirth \& Hipp (CRISP-DM)
-  $\cdot$ Dados: PRF/CNT (2023)
-  \enspace|\enspace
-  Implementação: \texttt{github.com/erikneves04/mineracao-de-dados-rodovias-federais}
+  FP-Growth $\cdot$ Regras de associação $\cdot$ CRISP-DM $\cdot$ Dados PRF (2023--2026)
+  \enspace|\enspace Código: \texttt{erikneves04/mineracao-de-dados-rodovias-federais}
   \hfill
   DCC/UFMG --- Grupo 18
 }
@@ -91,60 +89,63 @@
 % ===================== COLUNA ESQUERDA =====================
 \begin{column}{\colwidth}
 
-  \begin{block}{1. O problema: as rodovias que mais matam no país}
+  \begin{block}{1. O problema: perfis de alta severidade nas BRs mineiras}
 
-    \textbf{Minas Gerais lidera o Brasil} em acidentes e mortes nas rodovias federais.
-    Nosso objetivo: descobrir \emph{quais combinações de condições} elevam o risco de morte,
-    minerando regras \textit{contexto}~$\rightarrow$~\textbf{Fatal} sobre ocorrências
-    \textbf{com vítimas} (2023--2026).
+    Minas Gerais é um dos principais entroncamentos rodoviários do país. Em suas BRs,
+    tráfego urbano, intermunicipal e de cargas pesadas se misturam em trechos de pista
+    simples, áreas urbanas e zonas rurais. Pergunta de pesquisa:
+    \emph{quais perfis de ocorrência estão associados à alta severidade entre acidentes
+    com vítimas?}
 
     \begin{itemize}
-      \item \hl{8.988 acidentes}, \hl{712 mortes} e $\approx$\hl{11,5 mil feridos} em MG
-        (2023) --- \textbf{12\%} das mortes em rodovias federais do país.
-      \item A gravidade emerge da \textbf{coocorrência} de fatores (via, horário, manobra,
-        ambiente), e não de uma causa isolada.
-      \item \textbf{Regra ``honesta'':} o contexto usa apenas condições \emph{observáveis}
-        (pista, traçado, horário, clima, manobra) --- \textbf{nunca} dados de gravidade, o
-        que evita regras \emph{circulares} que só repetiriam o desfecho.
+      \item Dados disponíveis: \hl{30.858 ocorrências} PRF/MG (2023--2025 completos +
+        2026 parcial até 30/04/2026).
+      \item Mineração principal: apenas anos completos, com \hl{24.320 ocorrências com
+        vítimas} em 2023--2025.
+      \item Alvo: \textbf{AltaGravidade} = ocorrência com \textbf{morto} ou
+        \textbf{ferido grave}; são \hl{8.156 casos} no recorte principal.
+      \item As regras caracterizam \textbf{perfis de severidade}; não estimam risco
+        absoluto de ocorrer acidente.
     \end{itemize}
 
     \vspace{1.0ex}
     \begin{center}
-      \metricbox{26.899}{ocorrências\\com vítimas}\hspace{0.7cm}
-      \metricbox{7,8\%}{terminam em\\óbito}\hspace{0.7cm}
-      \metricbox{76}{regras\\contexto $\to$ Fatal}
+      \metricbox{24.320}{ocorrências\\com vítimas}\hspace{0.7cm}
+      \metricbox{33,54\%}{alta\\gravidade}\hspace{0.7cm}
+      \metricbox{154}{regras\\perfil $\to$ alta}
     \end{center}
 
   \end{block}
 
   \begin{block}{2. Os dados e o método (CRISP-DM)}
 
-    Base \textbf{PRF Dados Abertos} (MG, ocorrências com vítimas, 2023--2026); pipeline
-    reprodutível no repositório do grupo (referências):
+    Pipeline reprodutível a partir dos dados abertos da PRF:
 
     \vspace{0.8ex}
     \begin{center}
-      \pipestage{Dados PRF}{MG, c/ vítimas}\flowarrow
-      \pipestage{Limpeza}{26.899 registros}\flowarrow
-      \pipestage{One-hot}{78 itens}\flowarrow
+      \pipestage{Dados PRF}{MG}\flowarrow
+      \pipestage{Recorte}{2023--2025}\flowarrow
+      \pipestage{One-hot}{80 itens}\flowarrow
       \pipestage{FP-Growth}{sup.\ $\geq$ 0,5\%}\flowarrow
-      \pipestage{Regras}{76 ($\to$ Fatal)}
+      \pipestage{Regras}{154 ($\to$ alta)}
     \end{center}
     \vspace{0.8ex}
 
     \begin{itemize}
-      \item Antecedente com até \textbf{3 condições}; confiança $\geq8\%$; lift $\geq1{,}05$;
-        com poda de redundâncias.
-      \item Validação por \textbf{estratos} (urbano/rural) e \textbf{estabilidade ano a ano}.
+      \item Antecedente com até \textbf{3 itens}; confiança $\geq40\%$; lift $\geq1{,}10$.
+      \item Antecedentes: ambiente, via e características registradas da ocorrência;
+        \textbf{nunca} mortos, feridos ou classificação oficial.
+      \item \texttt{tipo\_acidente} e \texttt{causa\_acidente} são pós-evento: as regras
+        caracterizam perfis, não previsão pré-acidente.
+      \item 2026 parcial entra apenas na validação Jan--Abr.
     \end{itemize}
 
     \heading{Como ler uma regra}
     \begin{itemize}
-      \item \textbf{Suporte}: quão \emph{frequente} é o contexto na base;
-      \item \textbf{Confiança} $=P(\text{Fatal}\mid\text{contexto})$: a \emph{chance de morte}
-        naquele contexto;
-      \item \textbf{Lift}: \emph{quantas vezes acima da média} (7,8\%) ---
-        \hl{lift\,5} $=$ risco \textbf{5$\times$ maior}.
+      \item \textbf{Suporte}: frequência do perfil na base;
+      \item \textbf{Confiança} $=P(\text{AltaGravidade}\mid\text{perfil})$;
+      \item \textbf{Lift}: compara proporções. \hl{Lift\,2,4} significa que a proporção de
+        alta gravidade naquele perfil é cerca de \textbf{2,4$\times$} a média da base.
     \end{itemize}
 
   \end{block}
@@ -159,43 +160,39 @@
       \end{column}
       \begin{column}{0.51\linewidth}
         \centering
-        \includegraphics[width=\linewidth,height=7.5cm,keepaspectratio]{02_fatal_por_fase_dia.png}
-        \fcap{A fatalidade sobe ao \textbf{Amanhecer} e na \textbf{Plena Noite} ($>$11\%) e cai no Pleno dia ($\approx$6\%): visibilidade e fadiga importam.}
+        \includegraphics[width=\linewidth,height=8.1cm,keepaspectratio]{02_heatmap_temporal_gravidade.png}
+        \fcap{A severidade varia por fase do dia e dia da semana; noite e madrugada aparecem em perfis críticos.}
 
         \vspace{0.6ex}
         \raggedright
-        \textbf{Por que MG?} O estado é um \textbf{entroncamento logístico} do país: por
-        suas BRs escoam os fluxos de pessoas e cargas entre \textbf{São Paulo, Rio de
-        Janeiro, Espírito Santo, Bahia e Centro-Oeste}. Esse tráfego \textbf{intenso e
-        misto} (carros e caminhões pesados), somado a longos trechos de pista simples,
-        multiplica a exposição ao risco --- e ajuda a explicar por que MG \textbf{lidera}
-        os acidentes em rodovias federais.
+        \textbf{Por que MG?} O estado conecta fluxos entre \textbf{São Paulo, Rio de
+        Janeiro, Espírito Santo, Bahia e Centro-Oeste}. Esse tráfego intenso e misto
+        torna útil caracterizar perfis recorrentes de severidade.
       \end{column}
     \end{columns}
 
     \vspace{0.3ex}
-    O recorte espaço-temporal já antecipa os fatores de risco: trechos \textbf{rurais de
-    pista simples} e \textbf{baixa visibilidade noturna} concentram os desfechos mais
-    graves --- exatamente o perfil das BRs mais letais do estado, detalhado adiante.
+    O recorte espaço-temporal orienta a leitura das regras: os padrões descrevem
+    \textbf{severidade entre acidentes registrados}, não exposição total ao risco viário.
 
   \end{block}
 
-  \begin{block}{4. Quais fatores mais importam}
+  \begin{block}{4. Alvo e fatores associados}
 
-    Antes de minerar, medimos a associação de cada variável com o desfecho (Cramér's~$V$).
-    O desfecho é \textbf{fortemente desbalanceado}, o que torna ``Fatal'' um evento raro ---
-    e por isso interessante de explicar.
+    Antes de minerar regras, medimos a associação de cada variável com o alvo por
+    Cramér's~$V$. Alta gravidade é menos rara que fatalidade pura, mas ainda representa
+    os acidentes de maior impacto humano.
 
     \begin{columns}[c,totalwidth=\linewidth]
       \begin{column}{0.47\linewidth}
         \centering
         \includegraphics[width=\linewidth,height=7.5cm,keepaspectratio]{01_distribuicao_desfecho.png}
-        \fcap{Apenas \textbf{7,8\%} das ocorrências com vítimas são fatais (92,2\% Ferido).}
+        \fcap{\textbf{33,54\%} das ocorrências com vítimas têm morto ou ferido grave.}
       \end{column}
       \begin{column}{0.50\linewidth}
         \centering
         \includegraphics[width=\linewidth,height=7.5cm,keepaspectratio]{02_cramers_v_desfecho.png}
-        \fcap{\textbf{Tipo} e \textbf{causa} do acidente e o \textbf{traçado} da via são os mais ligados ao desfecho; clima é o menos relevante.}
+        \fcap{\textbf{Tipo} e \textbf{causa} da ocorrência lideram a associação com alta gravidade.}
       \end{column}
     \end{columns}
 
@@ -208,140 +205,133 @@
 % ===================== COLUNA DIREITA =====================
 \begin{column}{\colwidth}
 
-  \begin{block}{5. As regras encontradas: contextos que multiplicam o risco}
+  \begin{block}{5. As regras encontradas: perfis que multiplicam a severidade}
 
-    As \textbf{76 regras} revelam as combinações de condições que mais disparam o risco de
-    morte. As cinco principais (ordenadas por \emph{lift} --- o risco relativo à média):
+    As \textbf{154 regras} condensam combinações associadas à alta gravidade. As cinco
+    principais (ordenadas por \emph{lift}) são:
 
     \vspace{0.9ex}
     \begin{center}
       \renewcommand{\arraystretch}{1.5}
       \small
-      \setlength{\tabcolsep}{11pt}
-      \begin{tabular}{@{}>{\raggedright\arraybackslash}p{12.5cm}rrr@{}}
+      \setlength{\tabcolsep}{10pt}
+      \begin{tabular}{@{}>{\raggedright\arraybackslash}p{12.8cm}rrr@{}}
         \toprule
-        \textbf{Contexto (antecedente da regra)} & \textbf{Sup.} & \textbf{Conf.} & \textbf{Lift} \\
+        \textbf{Perfil da ocorrência} & \textbf{Sup.} & \textbf{Conf.} & \textbf{Lift} \\
         \midrule
-        Plena Noite + Atropelamento de pedestre + Rural & 0,5\% & 42,6\% & \hl{5,44} \\
-        Contramão + Colisão frontal + Rural & 0,7\% & 42,3\% & \hl{5,40} \\
-        Contramão + Colisão frontal + Pista simples & 0,8\% & 38,9\% & 4,97 \\
-        Céu claro + Colisão frontal + Rural & 1,1\% & 37,7\% & 4,82 \\
-        Plena Noite + Colisão frontal + Rural & 0,7\% & 37,6\% & 4,80 \\
+        Pedestre na pista + Plena Noite + Atropelamento de pedestre & 0,6\% & 81,6\% & \hl{2,43} \\
+        Pedestre na pista + Atropelamento de pedestre + Rural & 0,6\% & 80,9\% & \hl{2,41} \\
+        Plena Noite + Atropelamento de pedestre + Rural & 1,0\% & 80,5\% & 2,40 \\
+        Pedestre na pista + Plena Noite & 0,6\% & 80,3\% & 2,39 \\
+        Pedestre na pista + Atropelamento de pedestre + Reta & 0,5\% & 80,0\% & 2,39 \\
         \bottomrule
       \end{tabular}
     \end{center}
-    \vspace{0.4ex}
 
-    \heading{O que essas regras dizem sobre o trânsito}
+    \heading{O que essas regras dizem}
     \begin{itemize}
-      \item \textbf{Atropelamentos noturnos em zona rural:} pedestres desprotegidos, sem
-        iluminação e com veículos em alta velocidade --- o cenário mais letal da base.
-      \item \textbf{Colisões frontais em pista simples:} ultrapassagens e invasões de
-        contramão produzem impactos de altíssima energia, sem barreira central que separe
-        os sentidos.
-      \item \textbf{``Céu claro'' entre as mais letais:} tempo bom não protege --- o risco
-        vem da \emph{via} e da \emph{manobra}, não do clima (mais tráfego e velocidade).
+      \item \textbf{Atropelamentos noturnos:} pedestres expostos, condições potencialmente
+        associadas a menor visibilidade e dinâmica de impacto caracterizam o perfil mais
+        severo.
+      \item \textbf{Contramão e colisão frontal:} impactos de alta energia permanecem entre
+        os padrões fortes, especialmente em análises de robustez.
+      \item A contribuição não é causal: é \textbf{quantificar} força, cobertura,
+        estabilidade e incerteza de padrões recorrentes.
     \end{itemize}
 
   \end{block}
 
-  \begin{block}{6. Esses padrões são só dos fatais? (Fatal vs.\ Não-Fatal)}
+  \begin{block}{6. Especificidade e cobertura dos perfis}
 
-    \textit{O contexto de risco aparece em qualquer acidente ou só nos fatais?} Para validar,
-    mineramos também as regras de \textbf{Ferido} e comparamos o lift dos \emph{mesmos}
-    contextos nos dois desfechos. Resultado: onde o lift é alto para \textbf{Fatal}
-    ($\approx$5), ele fica \textbf{abaixo de 1 para Ferido} ($\approx$0,6) --- ou seja,
-    \hl{esses contextos não descrevem acidentes em geral; são específicos da fatalidade}.
-    Isso confirma que as regras capturam de fato fatores de \emph{letalidade}, e não apenas
-    de ocorrência.
+    \textit{Os perfis aparecem em qualquer acidente ou nos mais severos?} Avaliamos os
+    mesmos antecedentes contra \textbf{BaixaGravidade} e \textbf{Fatal}. Quando o lift para
+    alta gravidade fica perto de 2,4, o lift para baixa gravidade fica perto de 0,3; para
+    fatalidade, vários perfis passam de 5. Assim, as regras são específicas de severidade.
 
     \vspace{0.6ex}
     \begin{columns}[c,totalwidth=\linewidth]
-      \begin{column}{0.55\linewidth}
+      \begin{column}{0.60\linewidth}
         \centering
-        \includegraphics[width=\linewidth,height=7.8cm,keepaspectratio]{09_comparacao_fatal_ferido.png}
-        \fcap{Para cada contexto: lift \textbf{Fatal} (vermelho, $\approx$5) muito acima de 1 e lift \textbf{Ferido} (azul, $<1$). A linha tracejada em 1 marca a independência.}
+        \includegraphics[width=\linewidth,height=9.2cm,keepaspectratio]{09_comparacao_alta_baixa_fatal.png}
+        \fcap{Mesmos perfis: lift alto para Alta e Fatal, baixo para BaixaGravidade.}
       \end{column}
-      \begin{column}{0.43\linewidth}
+      \begin{column}{0.38\linewidth}
         \centering
-        \renewcommand{\arraystretch}{1.35}
-        \footnotesize
-        \setlength{\tabcolsep}{5pt}
-        \input{tabelas/comparacao_fatal_ferido.tex}
-        \fcap{Mesmos contextos, desfechos opostos: alto risco de morte, baixo risco relativo de apenas ferir.}
+        \includegraphics[width=\linewidth,height=8.3cm,keepaspectratio]{10_cobertura_regras.png}
+        \fcap{Cobertura única dos perfis minerados.}
       \end{column}
     \end{columns}
 
+    \vspace{0.5ex}
+    \begin{itemize}
+      \item \textbf{Top-5}: 360 casos severos cobertos; \textbf{Top-20}: 1.023.
+      \item Todas as regras cobrem \textbf{78,5\%} dos casos severos, com menor seletividade.
+      \item Há trade-off entre perfis muito fortes e cobertura operacional.
+    \end{itemize}
+
   \end{block}
 
-  \begin{block}{7. Os padrões são estáveis e dependem do ambiente}
+  \begin{block}{7. Robustez temporal, ambiente e incerteza}
 
-    Mineramos cada ano isoladamente: \hl{87 regras estáveis} (em $\geq50\%$ dos anos) e
-    \hl{31} presentes em \textbf{todos os 4 anos} --- não são artefato de um ano. Por
-    \textit{uso do solo}, há \textbf{19} regras urbanas vs.\ \textbf{54} rurais: o ambiente
-    rural concentra os contextos mais letais.
+    Minerando os anos completos separadamente, encontramos \hl{142 regras estáveis} (em
+    pelo menos 2 de 3 anos) e \hl{60} presentes em \textbf{2023, 2024 e 2025}. A validação
+    Jan--Abr inclui 2026 sem tratá-lo como ano completo. Por \textit{uso do solo}, há
+    \textbf{112} regras urbanas e \textbf{122} rurais, com \texttt{uso\_solo} removido dos
+    antecedentes.
 
     \begin{columns}[c,totalwidth=\linewidth]
       \begin{column}{0.5\linewidth}
         \centering
-        \includegraphics[width=\linewidth,height=6cm,keepaspectratio]{08_mineracao_por_ano.png}
-        \fcap{Regras por ano (barras) e lift médio (linha): volume e força estáveis, levemente crescentes.}
+        \includegraphics[width=\linewidth,height=6.4cm,keepaspectratio]{08_mineracao_por_ano.png}
+        \fcap{Regras por ano e lift médio nos anos completos.}
       \end{column}
       \begin{column}{0.48\linewidth}
         \centering
-        \includegraphics[width=\linewidth,height=6cm,keepaspectratio]{07_estratos_uso_solo.png}
-        \fcap{Top regras por estrato: os maiores lifts vêm do ambiente rural.}
+        \includegraphics[width=\linewidth,height=6.4cm,keepaspectratio]{07_estratos_uso_solo.png}
+        \fcap{Perfis variam entre urbano e rural sem vazamento do estrato.}
       \end{column}
     \end{columns}
 
+    \vspace{0.4ex}
+    \textbf{Incerteza:} bootstrap com 400 reamostragens nas top-5 manteve lift IC95\% acima
+    de \hl{2,19}. A sensibilidade de limiares preservou os perfis principais, embora o
+    número de regras varie com suporte e confiança.
+
   \end{block}
 
-  \begin{block}{8. Impacto real, hipóteses e conclusões}
-
-    \heading{Por que isso importa --- a ``Rodovia da Morte''}
-    \begin{itemize}
-      \item A \textbf{BR-381} (Fernão Dias) concentra $\approx$\hl{30\%} dos acidentes de MG;
-        com a \textbf{BR-040}, somam $\approx$\hl{51\%} das ocorrências do estado.
-      \item Seus trechos críticos têm \emph{exatamente} o perfil que nossas regras apontam:
-        \textbf{pista simples rural}, \textbf{colisões frontais} e \textbf{baixa visibilidade}.
-      \item A mineração \textbf{quantifica em escala} o que os noticiários relatam caso a
-        caso, virando um instrumento para \textbf{priorizar trechos e horários} em
-        fiscalização e engenharia de tráfego.
-    \end{itemize}
+  \begin{block}{8. Impacto, hipóteses e conclusões}
 
     \heading{O que cada hipótese revelou}
     \begin{columns}[T,totalwidth=\linewidth]
       \begin{column}{0.5\linewidth}
         \begin{itemize}
-          \item \textbf{H3 -- tipo de acidente (confirmada):} colisões frontais e
-            atropelamentos lideram o risco (lift até 5,4), por concentrarem energia de
-            impacto sobre ocupantes e pedestres.
-          \item \textbf{H5 -- ambiente (confirmada):} 54 regras rurais vs.\ 19 urbanas; a
-            zona rural reúne pista simples, alta velocidade e socorro mais distante.
-          \item \textbf{H1 -- noite + rural (parcial):} a noite eleva a fatalidade, mas
-            sobretudo \emph{combinada} a colisão frontal/atropelamento.
+          \item \textbf{H3 -- tipo de acidente (confirmada como perfil):} atropelamentos e
+            colisões frontais lideram a severidade.
+          \item \textbf{H5 -- ambiente (confirmada):} urbano e rural têm padrões distintos.
+          \item \textbf{H1 -- noite + perfil (parcial):} a noite importa sobretudo
+            combinada a atropelamento ou colisão frontal.
         \end{itemize}
       \end{column}
       \begin{column}{0.46\linewidth}
         \begin{itemize}
-          \item \textbf{H2 -- fim de semana (parcial):} efeito presente, porém fraco
-            (baixo Cramér's $V$) e dependente de outros fatores.
-          \item \textbf{H4 -- clima adverso (refutada):} ``Céu Claro'' aparece nas regras
-            mais letais --- mais tráfego e velocidade em tempo bom superam o risco da chuva.
+          \item \textbf{H2 -- fim de semana (parcial):} aparece em alguns perfis, mas não
+            domina isoladamente.
+          \item \textbf{H4 -- clima adverso (não confirmada):} clima não aparece como fator
+            dominante nas regras de maior lift.
         \end{itemize}
-        \textbf{IA responsável:} regras curtas ($\leq3$ itens) e em linguagem natural
-        (\textbf{explicabilidade}) e validadas ano a ano (\textbf{monitoramento}).
+        \textbf{IA responsável:} regras curtas e traduzidas (\textbf{explicabilidade}) e
+        avaliadas por estabilidade temporal, cobertura e bootstrap (\textbf{avaliação}).
       \end{column}
     \end{columns}
 
-    \vspace{0.2ex}
+    \vspace{0.3ex}
     \heading{Conclusão}
-    A mineração condensou \textbf{27 mil ocorrências} em poucos padrões \textbf{claros,
-    estáveis e específicos da fatalidade}: colisões frontais e atropelamentos em trechos
-    rurais de pista simples, à noite. São padrões \textbf{acionáveis} para prevenção e que
-    explicam, com dados, por que certas BRs mineiras são tão letais. Ressalva essencial:
-    \hl{associação não é causalidade} --- as regras indicam \emph{onde} e \emph{quando}
-    agir, não a causa única de cada acidente.
+    A mineração condensou \textbf{24.320 ocorrências com vítimas} em perfis claros,
+    estáveis e específicos de alta gravidade. Os principais padrões envolvem
+    \textbf{atropelamentos noturnos}, \textbf{pedestres na pista}, \textbf{contramão} e
+    \textbf{colisões frontais}. A leitura correta é investigativa: as regras ajudam a
+    priorizar hipóteses de prevenção, mas \hl{associação não é causalidade} e o estudo não
+    estima risco absoluto de ocorrência.
 
   \end{block}
 

@@ -37,7 +37,12 @@ def resolver_arquivo_ocorrencia(ano: int, data_dir: Path = DATA_DIR) -> Path | N
 
 def listar_anos_disponiveis(anos=None, data_dir: Path = DATA_DIR) -> dict[int, Path]:
     anos = anos or ANOS_OCORRENCIA
-    return {a: p for a in anos if (p := resolver_arquivo_ocorrencia(a, data_dir))}
+    out = {}
+    for ano in anos:
+        path = resolver_arquivo_ocorrencia(ano, data_dir)
+        if path is not None:
+            out[ano] = path
+    return out
 
 
 def _normalizar_texto(valor) -> str:
@@ -116,11 +121,21 @@ def carregar_anos(anos=None, filtro_uf: str | None = FILTRO_UF, data_dir: Path =
 def resumo_por_ano(df: pd.DataFrame) -> pd.DataFrame:
     rows = []
     for ano, g in df.groupby("ano"):
+        com_vitimas = g["classificacao_acidente"] != CLASSIF_SEM
+        mortos = pd.to_numeric(g["mortos"], errors="coerce").fillna(0)
+        feridos_graves = pd.to_numeric(g["feridos_graves"], errors="coerce").fillna(0)
+        alta_gravidade = (mortos > 0) | (feridos_graves > 0)
         rows.append({
             "ano": ano,
             "n_ocorrencias": len(g),
+            "n_com_vitimas": int(com_vitimas.sum()),
+            "n_alta_gravidade": int(alta_gravidade.sum()),
+            "n_fatais": int((g["classificacao_acidente"] == CLASSIF_FATAIS).sum()),
             "pct_fatais": round((g["classificacao_acidente"] == CLASSIF_FATAIS).mean() * 100, 2),
-            "pct_com_vitimas": round((g["classificacao_acidente"] != CLASSIF_SEM).mean() * 100, 2),
+            "pct_com_vitimas": round(com_vitimas.mean() * 100, 2),
+            "pct_alta_gravidade_com_vitimas": round(alta_gravidade[com_vitimas].mean() * 100, 2),
+            "data_min": g["data_inversa"].min(),
+            "data_max": g["data_inversa"].max(),
             "arquivo": g["arquivo_origem"].iloc[0] if "arquivo_origem" in g else "",
         })
     return pd.DataFrame(rows).sort_values("ano")

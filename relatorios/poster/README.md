@@ -1,39 +1,38 @@
-# Pôster A1 — Grupo 18 (DCC/UFMG)
+# Poster A1 - Grupo 18 (DCC/UFMG)
 
-Pôster acadêmico para a disciplina de **Mineração de Dados** (2026/1), baseado no template [Gemini](https://github.com/anishathalye/gemini) (beamerposter).
+Poster academico para a disciplina de Mineracao de Dados (2026/1), baseado no template Gemini.
 
-## Conteúdo
+## Conteudo
 
-- `poster.tex` — documento principal (A1 retrato, 2 colunas)
-- `beamercolorthemeufmg.sty` — tema de cores UFMG/DCC
-- `logos/` — logos oficiais UFMG e DCC
-- `figuras/` — 10 PNGs exportados do pipeline (cópia autocontida), incluindo `09_comparacao_fatal_ferido.png`
-- `tabelas/` — tabela LaTeX da comparação fatal vs. não-fatal (`comparacao_fatal_ferido.tex`)
-
-A figura e a tabela de comparação são geradas por [notebooks/07_comparacao_fatal_vs_nao_fatal.ipynb](../../notebooks/07_comparacao_fatal_vs_nao_fatal.ipynb), que reaproveita `src/mining.py` (sem alterar a lógica consolidada).
+- `poster.tex` - documento principal (A1 retrato, 2 colunas)
+- `beamercolorthemeufmg.sty` - tema de cores UFMG/DCC
+- `logos/` - logos UFMG e DCC
+- `figuras/` - PNGs exportados do pipeline
+- `tabelas/` - tabela LaTeX da comparacao alta/baixa/fatal
 
 ## Compilar localmente
 
-Requisitos: LuaLaTeX, `latexmk`, fontes **Raleway** e **Lato**.
+Requisitos: distribuicao LaTeX com beamerposter.
 
 ```bash
 cd relatorios/poster
 make
 ```
 
-Saída: `poster.pdf`
+Saida esperada: `poster.pdf`
 
 ## Compilar no Overleaf
 
-1. Faça upload da pasta `relatorios/poster/` (já inclui `figuras/` e `tabelas/`).
+1. Faca upload da pasta `relatorios/poster/`.
 2. Defina `poster.tex` como documento principal.
-3. Compile com **pdfLaTeX** (padrão do Overleaf) ou **LuaLaTeX** (fontes Raleway/Lato do tema Gemini).
-4. Se aparecer erro de `fontspec`, recompile após atualizar `beamerthemegemini.sty` (fallback pdfLaTeX) ou altere em Menu → Settings → Compiler → **LuaLaTeX**.
+3. Compile com pdfLaTeX ou LuaLaTeX.
 
-## Dados destacados no pôster
+## Dados destacados no poster
 
-- 30.858 ocorrências MG (2023–2026)
-- 26.899 transações com vítimas (7,8% Fatal)
-- 76 regras contexto → Fatal (lift máx. 5,44)
-- 87 regras estáveis; 19 urbano / 54 rural por estrato
-- Comparação fatal vs. não-fatal: contextos de alto lift para Fatal têm lift < 1 para Ferido (específicos da fatalidade)
+- 30.858 ocorrencias MG disponiveis no conjunto 2023-2026.
+- Mineracao principal em 2023-2025 completos: 24.320 ocorrencias com vitimas.
+- 8.156 ocorrencias de alta gravidade (33,54%).
+- 154 regras perfil -> AltaGravidade (lift max. 2,43).
+- 75 regras perfil -> Fatal como validacao secundaria.
+- Top-20 regras cobrem 12,5% dos casos de alta gravidade; o conjunto completo cobre 78,5%.
+- 142 regras estaveis em pelo menos 2/3 anos completos; 60 em 3/3 anos.

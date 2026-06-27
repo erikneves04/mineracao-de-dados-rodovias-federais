@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Central pipeline configuration (Package A + MG multi-year)."""
+"""Central pipeline configuration (high-severity + MG multi-year)."""
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -37,6 +37,10 @@ COLUNAS_CONTEXTO = [
 
 ITEM_ALVO_FATAL = "desfecho_Fatal"
 ITEM_ALVO_FERIDO = "desfecho_Ferido"
+ITEM_ALVO_ALTA_GRAVIDADE = "desfecho_AltaGravidade"
+ITEM_ALVO_BAIXA_GRAVIDADE = "desfecho_BaixaGravidade"
+ALVO_PRINCIPAL = ITEM_ALVO_ALTA_GRAVIDADE
+ALVO_SECUNDARIO_FATAL = ITEM_ALVO_FATAL
 PREFIXO_CONTEXTO = "ctx_"
 
 MIN_FREQ_ITEM = 0.005
@@ -44,8 +48,9 @@ MAX_FREQ_ITEM = 0.99
 
 MIN_SUPPORT = 0.005
 MIN_CONFIDENCE = 0.5
+MIN_CONFIDENCE_ALTA_GRAVIDADE = 0.40
 MIN_CONFIDENCE_FATAL = 0.08
-MIN_LIFT = 1.05
+MIN_LIFT = 1.10
 MIN_COUNT_ABS = 15
 MAX_ANTECEDENTES = 3
 
@@ -55,3 +60,7 @@ THRESHOLD_TRANSITORIO = 0.3
 CLASSIF_FERIDOS = "Com V\u00edtimas Feridas"
 CLASSIF_FATAIS = "Com V\u00edtimas Fatais"
 CLASSIF_SEM = "Sem V\u00edtimas"
+
+ANOS_COMPLETOS = [2023, 2024, 2025]
+ANO_PARCIAL = 2026
+DATA_MAX_2026_ESPERADA = "2026-04-30"

@@ -4,15 +4,20 @@ from __future__ import annotations
 
 import pandas as pd
 
-from src.config import ITEM_ALVO_FATAL, PREFIXO_CONTEXTO
+from src.config import (
+    COLUNAS_CONTEXTO,
+    ITEM_ALVO_ALTA_GRAVIDADE,
+    ITEM_ALVO_BAIXA_GRAVIDADE,
+    ITEM_ALVO_FATAL,
+    ITEM_ALVO_FERIDO,
+    PREFIXO_CONTEXTO,
+)
 
 
 def _limpar_item(item: str) -> str:
     s = str(item)
     if s.startswith(PREFIXO_CONTEXTO):
         s = s[len(PREFIXO_CONTEXTO):]
-    if "Fatal" in s and s.startswith("desfecho"):
-        return "desfecho fatal"
     mapa = {
         "condicao_metereologica": "clima",
         "tipo_pista": "tipo de pista",
@@ -23,15 +28,33 @@ def _limpar_item(item: str) -> str:
         "fase_dia": "fase do dia",
         "fim_de_semana": "fim de semana",
     }
-    partes = s.split("_", 1)
-    if len(partes) == 2:
-        col, val = partes
-        val = val.replace("_", " ")
-        nome = mapa.get(col, col)
-        if col == "uso_solo":
-            val = "urbano" if val.lower() == "sim" else "rural"
-        return f"{nome}={val}"
+    alvo_map = {
+        ITEM_ALVO_ALTA_GRAVIDADE: "alta gravidade",
+        ITEM_ALVO_BAIXA_GRAVIDADE: "baixa gravidade",
+        ITEM_ALVO_FATAL: "desfecho fatal",
+        ITEM_ALVO_FERIDO: "desfecho ferido",
+    }
+    if s in alvo_map:
+        return alvo_map[s]
+    for col in sorted(COLUNAS_CONTEXTO, key=len, reverse=True):
+        prefixo = f"{col}_"
+        if s.startswith(prefixo):
+            val = s[len(prefixo):].replace("_", " ")
+            nome = mapa.get(col, col.replace("_", " "))
+            if col == "uso_solo":
+                val = "urbano" if val.lower() == "sim" else "rural"
+            return f"{nome}={val}"
     return s.replace("_", " ")
+
+
+def _consequente_texto(row: pd.Series) -> str:
+    cons = row.get("consequents")
+    if isinstance(cons, frozenset) and len(cons) == 1:
+        return _limpar_item(next(iter(cons)))
+    cons_str = str(row.get("consequents_str", ""))
+    if cons_str:
+        return _limpar_item(cons_str)
+    return "desfecho"
 
 
 def regra_para_texto(row: pd.Series) -> str:
@@ -41,7 +64,7 @@ def regra_para_texto(row: pd.Series) -> str:
         ante_items = [_limpar_item(x.strip()) for x in str(row.get("antecedents_str", "")).split(",")]
     ante_txt = " E ".join(ante_items)
     sup, conf, lift = row.get("support", 0) * 100, row.get("confidence", 0) * 100, row.get("lift", 0)
-    return f"Quando {ante_txt}, entao desfecho fatal. [Suporte: {sup:.1f}% | Confianca: {conf:.1f}% | Lift: {lift:.2f}]"
+    return f"Quando {ante_txt}, entao {_consequente_texto(row)}. [Suporte: {sup:.1f}% | Confianca: {conf:.1f}% | Lift: {lift:.2f}]"
 
 
 def traduzir_regras(rules: pd.DataFrame) -> pd.DataFrame:

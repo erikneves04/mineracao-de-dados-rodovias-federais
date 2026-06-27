@@ -1,7 +1,7 @@
 {
-  "n_registros": 26899,
-  "n_itens_total": 455,
-  "n_itens_filtrado": 78,
+  "n_registros": 24320,
+  "n_itens_total": 448,
+  "n_itens_filtrado": 80,
   "min_freq": 0.005,
   "max_freq": 0.99,
   "colunas_contexto": [
@@ -14,13 +14,19 @@
     "fase_dia",
     "fim_de_semana"
   ],
-  "pct_fatal": 7.83,
-  "pct_ferido": 92.17,
-  "design": "pacote_a_contexto_para_desfecho",
+  "n_fatais": 1895,
+  "n_feridos": 22425,
+  "pct_fatal": 7.79,
+  "pct_ferido": 92.21,
+  "n_alta_gravidade": 8156,
+  "n_baixa_gravidade": 16164,
+  "pct_alta_gravidade": 33.54,
+  "pct_baixa_gravidade": 66.46,
+  "alvo_principal": "desfecho_AltaGravidade",
+  "definicao_alta_gravidade": "mortos > 0 OR feridos_graves > 0",
   "anos": [
     2023,
     2024,
-    2025,
-    2026
+    2025
   ]
 }

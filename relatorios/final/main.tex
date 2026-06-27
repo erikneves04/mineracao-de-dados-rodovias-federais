@@ -12,6 +12,7 @@
 \usepackage{enumitem}
 \usepackage{booktabs}
 \usepackage{float}
+\usepackage{placeins}
 \usepackage{array}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta, positioning, shapes.geometric}
@@ -22,7 +23,8 @@
 
 \graphicspath{{figuras/}}
 
-\title{Relat\'orio Final: Minera\c{c}\~ao de Regras de Associa\c{c}\~ao \\ em Acidentes em Rodovias Federais (MG)}
+\title{Relatório Final: Mineração de Regras de Associação\\
+em Acidentes de Alta Gravidade em Rodovias Federais (MG)}
 
 \author{Erik Roberto Reis Neves \\ Gabriel Campos Prudente \\ Felipe Silva Fraga Damasceno}
 
@@ -33,245 +35,268 @@
 \maketitle
 
 \begin{abstract}
-Este relat\'orio apresenta um estudo completo de Minera\c{c}\~ao de Dados sobre acidentes em rodovias federais registrados pela Pol\'icia Rodovi\'aria Federal (PRF), com recorte geogr\'afico em Minas Gerais (MG) e janela temporal multi-ano (2023--2026). Adotamos o algoritmo FP-Growth para extrair regras de associa\c{c}\~ao do tipo \textit{contexto} $\rightarrow$ \textit{desfecho\_Fatal}, evitando tautologias entre vari\'aveis de gravidade. Sobre 26.899 ocorr\^encias com v\'itimas, identificamos 76 regras n\~ao triviais (lift m\'aximo 5,44) e 87 padr\~oes temporalmente est\'aveis. Operacionalizamos as diretrizes de IA respons\'avel \textbf{Explicabilidade} e \textbf{Monitoramento e Avalia\c{c}\~ao} na sele\c{c}\~ao, tradu\c{c}\~ao e valida\c{c}\~ao temporal das regras. Os resultados indicam combina\c{c}\~oes recorrentes envolvendo colis\~oes frontais, trechos rurais, pista simples e condi\c{c}\~oes noturnas associadas a desfechos fatais, com implica\c{c}\~oes para preven\c{c}\~ao vi\'aria, ressalvada a distin\c{c}\~ao entre associa\c{c}\~ao estat\'istica e causalidade.
+Este relatório apresenta um estudo de Mineração de Dados sobre acidentes em rodovias federais registrados pela Polícia Rodoviária Federal (PRF), com recorte em Minas Gerais. A mineração principal usa os anos completos de 2023, 2024 e 2025; o ano de 2026, disponível apenas até 30/04/2026, é usado somente como validação temporal Jan--Abr. O alvo é \textbf{AltaGravidade}, definido como ocorrência com ao menos um morto ou ferido grave. Sobre 24.320 ocorrências com vítimas nos anos completos, das quais 8.156 são de alta gravidade (33,54\%), aplicamos FP-Growth para obter regras do tipo \textit{perfil da ocorrência} $\rightarrow$ \textit{AltaGravidade}. Foram encontradas 154 regras, com confiança máxima de 81,6\% e lift máximo de 2,43. As regras também foram avaliadas por cobertura, bootstrap, sensibilidade de limiares, comparação com baixa gravidade e fatalidade, estabilidade temporal e estratos urbano/rural. O trabalho caracteriza perfis interpretáveis de severidade entre acidentes com vítimas; não estima risco absoluto nem causalidade.
 \end{abstract}
 
-\section{Introdu\c{c}\~ao}
+\section{Introdução}
 
-Os acidentes de tr\^ansito em rodovias federais constituem um problema de sa\'ude p\'ublica e infraestrutura no Brasil, com perdas humanas e custos socioecon\^omicos elevados. A Pol\'icia Rodovi\'aria Federal (PRF) registra sistematicamente essas ocorr\^encias, produzindo bases de dados ricas em vari\'aveis temporais, ambientais, vi\'arias e de consequ\^encia. An\'alises univariadas ou puramente descritivas s\~ao insuficientes para capturar a intera\c{c}\~ao simult\^anea de m\'ultiplos fatores de risco; a gravidade dos acidentes emerge, em geral, da \textbf{coocorr\^encia} de condi\c{c}\~oes contextuais, e n\~ao de vari\'aveis isoladas.
+Acidentes em rodovias federais são um problema relevante de saúde pública, infraestrutura e segurança viária. A base aberta da PRF registra ocorrências com variáveis temporais, ambientais, viárias, espaciais, mecânicas e de consequência. O objetivo deste trabalho é identificar \textbf{combinações recorrentes de condições ambientais, viárias e características registradas da ocorrência} associadas à alta gravidade em Minas Gerais.
 
-\subsection{Objetivos}
+O problema investigado é: \textit{entre acidentes com vítimas, quais perfis de ocorrência aparecem associados a maior severidade?} Essa formulação é importante: o estudo não estima a probabilidade absoluta de um acidente ocorrer em determinado trecho ou horário, pois não há controle por exposição, fluxo de veículos, quilometragem percorrida ou população exposta. O foco está na severidade condicional ao acidente já registrado.
 
-O objetivo geral deste projeto \'e desenvolver um estudo de Minera\c{c}\~ao de Dados sobre acidentes rodovi\'arios federais, identificando \textbf{padr\~oes ocultos e regras de associa\c{c}\~ao estatisticamente relevantes} associadas \`a severidade dos acidentes. Os objetivos espec\'ificos s\~ao:
-\begin{enumerate}[leftmargin=*]
-    \item Identificar itemsets frequentes que caracterizem cen\'arios de risco em MG, com representa\c{c}\~ao transacional one-hot.
-    \item Gerar regras \textit{contexto} $\rightarrow$ \textit{Fatal} com m\'etricas de suporte, confian\c{c}a, lift e conviction, priorizando padr\~oes interpret\'aveis e n\~ao redundantes.
-    \item Investigar heterogeneidades estruturais por estrato de \textit{uso do solo} (urbano vs.\ rural).
-    \item Operacionalizar as diretrizes de IA respons\'avel \textbf{Explicabilidade} e \textbf{Monitoramento e Avalia\c{c}\~ao}.
-\end{enumerate}
+Os antecedentes não incluem variáveis de consequência, como número de mortos, feridos graves, feridos, classificação oficial ou qualquer variável derivada do desfecho. Entretanto, variáveis como \texttt{tipo\_acidente} e \texttt{causa\_acidente} são registradas após a ocorrência e carregam informação sobre sua mecânica. Portanto, as regras devem ser interpretadas como \textbf{perfis de acidentes graves}, não como preditores disponíveis antes do acidente.
 
-\subsection{Problema Investigado}
+\section{Fundamentação e Trabalhos Relacionados}
 
-Buscamos regras de associa\c{c}\~ao \textbf{n\~ao triviais} que relacionem combina\c{c}\~oes de fatores contextuais --- ambientais, temporais e vi\'arios --- \`a ocorr\^encia de acidentes com desfecho fatal entre ocorr\^encias \textbf{com v\'itimas}. O desafio n\~ao \'e apenas encontrar padr\~oes frequentes, mas extrair regras simultaneamente \textbf{interpret\'aveis, relevantes e n\~ao redundantes}, evitando tautologias (por exemplo, regras que apenas reproduzem a classifica\c{c}\~ao oficial de gravidade).
+Regras de associação foram formalizadas por Agrawal e Srikant \cite{agrawal1994} para descobrir padrões de coocorrência em bases transacionais. O algoritmo FP-Growth, proposto por Han \textit{et al.} \cite{han2000}, substitui a geração explícita de candidatos por uma estrutura compacta de árvore, tornando a mineração mais eficiente em bases com muitos itens. Métricas como suporte, confiança, lift, leverage e conviction são discutidas por Zaki e Meira Jr. \cite{zaki2020} como critérios para separar associações relevantes de relações frequentes, mas pouco informativas.
 
-\section{Trabalhos Relacionados}
-
-\subsection{Minera\c{c}\~ao de Padr\~oes Frequentes e Regras de Associa\c{c}\~ao}
-
-Agrawal e Srikant \cite{agrawal1994} formalizaram a minera\c{c}\~ao de regras de associa\c{c}\~ao sobre bases transacionais, introduzindo suporte e confian\c{c}a como m\'etricas centrais. Han \textit{et al.} \cite{han2000} propuseram o algoritmo FP-Growth, que compacta transa\c{c}\~oes em uma FP-Tree e evita a gera\c{c}\~ao expl\'icita de candidatos, sendo adequado a bases de alta dimensionalidade. Zaki e Meira Jr.\ \cite{zaki2020} sistematizam m\'etricas complementares --- lift, leverage e conviction --- para filtrar associa\c{c}\~oes esp\'urias e priorizar padr\~oes informativos.
-
-\subsection{Metodologia CRISP-DM}
-
-Wirth e Hipp \cite{wirth2000} prop\~oem o CRISP-DM como processo padr\~ao para projetos de minera\c{c}\~ao de dados, estruturando o trabalho em fases iterativas: compreens\~ao do neg\'ocio e dos dados, prepara\c{c}\~ao, modelagem, avalia\c{c}\~ao e deployment. Adotamos essa estrutura para organizar notebooks reprodut\'iveis e um pipeline em \texttt{src/}.
-
-\subsection{Dados Abertos da PRF}
-
-A PRF disponibiliza publicamente bases consolidadas de acidentes em rodovias federais \cite{prf2026}, com vari\'aveis temporais, espaciais, ambientais e de gravidade. Estudos descritivos s\~ao comuns, mas a aplica\c{c}\~ao sistem\'atica de regras de associa\c{c}\~ao multivariadas sobre recortes regionais multi-ano permanece pouco explorada.
+O projeto segue uma estrutura inspirada no CRISP-DM \cite{wirth2000}: compreensão do problema, entendimento dos dados, preparação, modelagem, avaliação e comunicação dos resultados. A fonte de dados é pública e documentada pela PRF \cite{prf2026}.
 
 \section{Metodologia}
 
-O projeto seguiu o framework CRISP-DM (Figura~\ref{fig:pipeline}), com redesenho metodol\'ogico \textbf{Pacote~A}: minera\c{c}\~ao restrita a regras \textit{contexto} $\rightarrow$ \textit{desfecho\_Fatal}, sem incluir vari\'aveis tautol\'ogicas de gravidade nos antecedentes.
+O fluxo geral do trabalho é mostrado na Figura~\ref{fig:pipeline}. O método principal é FP-Growth; análises de cobertura, incerteza, estabilidade, estratos e fatalidade são usadas como avaliação complementar.
 
-\begin{figure}[H]
+\begin{figure}[!htbp]
     \centering
     \begin{tikzpicture}[
-        node distance=0.55cm and 0.35cm,
-        box/.style={rectangle, draw, rounded corners, minimum width=2.6cm, minimum height=0.65cm, align=center, font=\small},
+        node distance=0.45cm and 0.25cm,
+        box/.style={rectangle, draw, rounded corners, minimum width=2.25cm, minimum height=0.78cm, text width=2.05cm, inner sep=3pt, align=center, font=\scriptsize},
+        evalbox/.style={rectangle, draw, rounded corners, minimum width=12.7cm, minimum height=1.0cm, text width=12.2cm, inner sep=4pt, align=center, font=\scriptsize, fill=gray!8},
         arrow/.style={-{Stealth[length=2mm]}, thick}
     ]
-        \node[box] (d1) {Dados PRF\\(2023--2026, MG)};
-        \node[box, below=of d1] (d2) {EDA e\\qualidade};
-        \node[box, below=of d2] (d3) {Prepara\c{c}\~ao\\Pacote A};
-        \node[box, below=of d3] (d4) {FP-Growth\\restrito};
-        \node[box, below left=0.6cm and -0.2cm of d4] (d5) {Estabilidade\\temporal};
-        \node[box, below right=0.6cm and -0.2cm of d4] (d6) {Estratos\\urbano/rural};
-        \node[box, below=1.1cm of d4] (d7) {Avalia\c{c}\~ao e\\visualiza\c{c}\~ao};
+        \node[box] (d1) {Dados PRF\\MG};
+        \node[box, right=of d1] (d2) {Anos completos\\2023--2025};
+        \node[box, right=of d2] (d3) {Ocorrências\\com vítimas};
+        \node[box, right=of d3] (d4) {Transações\\itens + alvo};
+        \node[box, right=of d4] (d5) {FP-Growth\\AltaGravidade};
+        \node[box, right=of d5] (d6) {Regras\\perfil $\to$ alta};
+        \node[evalbox, below=0.75cm of d4] (d7) {Avaliação complementar: cobertura, bootstrap e sensibilidade de limiares\\estabilidade 2023--2025, estratos urbano/rural e robustez Fatal/Jan--Abr 2026};
         \draw[arrow] (d1) -- (d2);
         \draw[arrow] (d2) -- (d3);
         \draw[arrow] (d3) -- (d4);
         \draw[arrow] (d4) -- (d5);
-        \draw[arrow] (d4) -- (d6);
-        \draw[arrow] (d5) -- (d7);
-        \draw[arrow] (d6) -- (d7);
+        \draw[arrow] (d5) -- (d6);
+        \draw[arrow] (d6.south) |- (d7.east);
     \end{tikzpicture}
-    \caption{Pipeline CRISP-DM implementado (Pacote A).}
+    \caption{Pipeline CRISP-DM implementado no projeto.}
     \label{fig:pipeline}
 \end{figure}
 
 \subsection{Dados e Recorte}
 
-Utilizamos os CSVs \textit{agrupados por ocorr\^encia} da PRF (\texttt{datatran2023.csv}--\texttt{datatran2026.csv}), com separador \texttt{;} e encoding \texttt{latin-1}. Cada registro corresponde a uma ocorr\^encia \'unica. Aplicamos filtro geogr\'afico UF~=~MG, totalizando \textbf{30.858} ocorr\^encias nos quatro anos dispon\'iveis. Restringimos a an\'alise a acidentes \textbf{com v\'itimas} ($n = 26.899$), definindo o alvo bin\'ario \texttt{desfecho} $\in \{$Fatal (7,8\%), Ferido (92,2\%)$\}$.
+Foram usados os arquivos \texttt{datatran2023.csv} a \texttt{datatran2026.csv}, com uma linha por ocorrência. O recorte geográfico é Minas Gerais. A Tabela~\ref{tab:ano} resume a base disponível. A mineração principal usa somente os anos completos 2023--2025: 27.873 ocorrências em MG, das quais 24.320 têm vítimas. O ano de 2026 aparece na base apenas até 30/04/2026 e é reservado para validação Jan--Abr.
 
-\subsection{Prepara\c{c}\~ao (Pacote A)}
+\begin{table}[!htbp]
+    \centering
+    \caption{Resumo anual da base PRF/MG.}
+    \label{tab:ano}
+    \small
+    \input{tabelas/resumo_por_ano.tex}
+\end{table}
 
-Selecionamos oito colunas de \textbf{contexto}: \texttt{condicao\_metereologica}, \texttt{tipo\_pista}, \texttt{tracado\_via}, \texttt{uso\_solo}, \texttt{causa\_acidente}, \texttt{tipo\_acidente}, \texttt{fase\_dia} e \texttt{fim\_de\_semana}. Cada ocorr\^encia foi convertida em transa\c{c}\~ao one-hot com prefixo \texttt{ctx\_}, mais o item-alvo \texttt{desfecho\_Fatal} ou \texttt{desfecho\_Ferido}. Itens com frequ\^encia $< 0{,}5\%$ ou $> 99\%$ foram removidos, resultando em 78 itens v\'alidos.
+O alvo principal é:
+\[
+\texttt{AltaGravidade} = (\texttt{mortos} > 0) \lor (\texttt{feridos\_graves} > 0).
+\]
+No recorte principal, há 8.156 ocorrências de alta gravidade e 16.164 de baixa gravidade entre os acidentes com vítimas. Fatalidade pura é mantida como alvo secundário de robustez.
 
-\subsection{Modelagem: FP-Growth Restrito}
+\subsection{Preparação dos Dados}
 
-O FP-Growth (\texttt{mlxtend}) foi aplicado com \texttt{min\_support = 0{,}005}. As regras foram filtradas para:
-\begin{itemize}[leftmargin=*]
-    \item consequente exclusivamente \texttt{desfecho\_Fatal};
-    \item antecedentes contendo apenas itens \texttt{ctx\_*} (m\'aximo tr\^es itens);
-    \item confian\c{c}a $\geq 8\%$, lift $\geq 1{,}05$ e suporte absoluto $\geq 15$ ocorr\^encias;
-    \item poda de regras n\~ao minimais e redundantes.
-\end{itemize}
+Cada ocorrência com vítima foi transformada em uma transação binária. Os antecedentes usam oito dimensões: \texttt{condicao\_metereologica}, \texttt{tipo\_pista}, \texttt{tracado\_via}, \texttt{uso\_solo}, \texttt{causa\_acidente}, \texttt{tipo\_acidente}, \texttt{fase\_dia} e \texttt{fim\_de\_semana}. Itens com frequência menor que 0,5\% ou maior que 99\% foram filtrados. Após o filtro, restaram 80 itens.
 
-\subsection{M\'etricas e Hip\'oteses}
+Na limpeza, categorias textuais foram padronizadas por remoção de espaços extras e harmonização de grafias recorrentes da PRF. Valores ausentes, \texttt{NA}, \texttt{nan} e campos vazios foram mapeados para \texttt{Nao Informado}; esses valores não foram transformados em itens de antecedente. Registros duplicados por par \texttt{id}/\texttt{ano} foram removidos no carregamento. Campos numéricos de vítimas foram convertidos para número; categorias oficiais como ``Ignorado'' foram preservadas quando registradas pela PRF, mas ficaram sujeitas ao mesmo filtro de frequência dos demais itens.
 
-Avaliamos suporte $P(A \cup B)$, confian\c{c}a $P(B \mid A)$, lift (raz\~ao entre confian\c{c}a observada e esperada sob independ\^encia), leverage e conviction. Formulamos cinco hip\'oteses (H1--H5) sobre combina\c{c}\~oes noturnas/rurais, finais de semana, colis\~oes frontais/atropelamentos, clima adverso e heterogeneidade urbano/rural.
+As regras são restritas a antecedentes \texttt{ctx\_*}. Alvos e consequências nunca aparecem como explicadores. Essa restrição evita associações tautológicas e mantém a interpretação no nível de perfil da ocorrência.
 
-\section{Implementa\c{c}\~ao}
+\subsection{Modelagem e Avaliação}
 
-A l\'ogica anal\'itica concentra-se em \texttt{src/} (\texttt{data\_loading.py}, \texttt{preparation.py}, \texttt{mining.py}, \texttt{evaluation.py}) e \texttt{scripts/run\_pipeline.py}, que executa o fluxo end-to-end e exporta artefatos em \texttt{outputs/}. Seis notebooks (01--06) documentam setup, EDA, prepara\c{c}\~ao, modelagem, avalia\c{c}\~ao de IA respons\'avel e visualiza\c{c}\~ao. A configura\c{c}\~ao central (\texttt{src/config.py}) garante reprodutibilidade de par\^ametros e caminhos.
+O FP-Growth foi executado com \texttt{min\_support = 0,005}. As regras principais foram filtradas para: consequente exclusivamente \texttt{desfecho\_AltaGravidade}, antecedentes com no máximo três itens, confiança mínima de 40\%, lift mínimo de 1,10 e suporte absoluto mínimo de 15 ocorrências. Regras não minimais foram podadas quando uma regra mais simples tinha o mesmo consequente e confiança igual ou maior.
+
+A avaliação inclui: comparação dos mesmos contextos contra baixa gravidade e fatalidade; cobertura única das top-5, top-10, top-20 e de todas as regras; bootstrap para as top regras; análise de sensibilidade de suporte, confiança e lift; estabilidade temporal nos anos completos 2023--2025; validação Jan--Abr incluindo 2026; e mineração por estrato urbano/rural. Na mineração por estrato, o item \texttt{uso\_solo} é removido do antecedente para evitar que o estrato explique a si mesmo.
+
+\section{Implementação}
+
+A implementação está organizada em módulos: carregamento em \texttt{src/data\_loading.py}, preparação em \texttt{src/preparation.py}, mineração em \texttt{src/mining.py} e avaliação/tradução em \texttt{src/evaluation.py}. O script \texttt{scripts/run\_pipeline.py} executa o fluxo completo e exporta regras, métricas de cobertura, bootstrap, sensibilidade e estabilidade. Figuras e tabelas para o relatório são geradas por \texttt{scripts/generate\_figures.py} e \texttt{scripts/build\_final\_report\_tables.py}.
 
 \section{Resultados Experimentais}
 
-\subsection{An\'alise Explorat\'oria}
+\subsection{Entendimento dos Dados}
 
-A Tabela~\ref{tab:desfecho} confirma desbalanceamento marcante: apenas 7,8\% dos acidentes com v\'itimas s\~ao fatais. A an\'alise de associa\c{c}\~ao via Cram\'er's~$V$ (Figura~\ref{fig:eda1}) indica que \texttt{tipo\_acidente}, \texttt{causa\_acidente} e \texttt{tracado\_via} s\~ao os contextos mais fortemente associados ao desfecho.
+A Tabela~\ref{tab:desfecho} mostra a distribuição do alvo principal. Alta gravidade representa 33,54\% das ocorrências com vítimas nos anos completos, enquanto fatalidade pura representa 7,79\%. O alvo principal é, portanto, menos raro que morte, mas ainda captura eventos severos.
 
-\begin{table}[H]
+\begin{table}[!htbp]
     \centering
-    \caption{Distribui\c{c}\~ao do desfecho entre ocorr\^encias com v\'itimas (MG, 2023--2026).}
+    \caption{Distribuição do desfecho de alta gravidade no recorte principal.}
     \label{tab:desfecho}
-    \input{tabelas/distribuicao_desfecho.tex}
+    \input{tabelas/distribuicao_alta_gravidade.tex}
 \end{table}
 
-\begin{figure}[H]
+\begin{figure}[!htbp]
     \centering
     \begin{subfigure}[b]{0.48\textwidth}
         \includegraphics[width=\textwidth]{01_distribuicao_desfecho.png}
-        \caption{Distribui\c{c}\~ao do desfecho.}
+        \caption{Distribuição do alvo.}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
         \includegraphics[width=\textwidth]{02_cramers_v_desfecho.png}
-        \caption{Cram\'er's $V$ (contexto $\times$ desfecho).}
+        \caption{Associação contexto $\times$ alta gravidade.}
     \end{subfigure}
-    \caption{Resultados explorat\'orios principais.}
-    \label{fig:eda1}
+    \caption{Resultados exploratórios principais.}
+    \label{fig:eda}
 \end{figure}
 
-A Figura~\ref{fig:geo} apresenta distribui\c{c}\~ao espacial (amostra de 3.000 pontos) sobre mapa de MG, evidenciando concentra\c{c}\~ao ao longo das BRs e da regi\~ao metropolitana de Belo Horizonte. O perfil temporal (Figura~\ref{fig:tempo}) mostra maior taxa relativa de fatalidade em fases noturnas e varia\c{c}\~ao sazonal entre anos.
+\subsection{Regras de Alta Gravidade}
 
-\begin{figure}[H]
+Foram encontradas \textbf{154 regras} do tipo perfil da ocorrência $\rightarrow$ AltaGravidade. O lift máximo foi 2,43 e a mediana 1,54. As regras mais fortes concentram atropelamentos de pedestre em plena noite e colisões frontais ligadas a contramão, com confiança próxima de 80\%.
+
+\begin{table}[!htbp]
     \centering
-    \includegraphics[width=0.72\textwidth]{02_mapa_amostra.png}
-    \caption{Amostra espacial de acidentes com v\'itimas em MG (Fatal em vermelho, Ferido em azul).}
-    \label{fig:geo}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{02_fatal_por_fase_dia.png}
-        \caption{Taxa de fatalidade por fase do dia.}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{02_sazonalidade_mensal.png}
-        \caption{Sazonalidade mensal por ano.}
-    \end{subfigure}
-    \caption{Perfil temporal dos acidentes com v\'itimas.}
-    \label{fig:tempo}
-\end{figure}
-
-\subsection{Regras de Associa\c{c}\~ao}
-
-A minera\c{c}\~ao global produziu \textbf{76 regras} contexto $\rightarrow$ Fatal, com lift m\'aximo de \textbf{5,44} e mediana de \textbf{1,81}. A Tabela~\ref{tab:top} lista as doze regras de maior lift; destacam-se combina\c{c}\~oes envolvendo \textit{Plena Noite + Atropelamento de Pedestre + Zona Rural} (lift 5,44) e \textit{Transitar na contram\~ao + Colis\~ao frontal + Zona Rural} (lift 5,40).
-
-\begin{table}[H]
-    \centering
-    \caption{Top-12 regras contexto $\rightarrow$ Fatal por lift (base multi-ano).}
+    \caption{Top-8 regras para AltaGravidade por lift.}
     \label{tab:top}
-    \small
-    \input{tabelas/top_regras_fatal.tex}
+    \footnotesize
+    \input{tabelas/top_regras_alta.tex}
 \end{table}
 
-A Figura~\ref{fig:mining} mostra o scatter suporte$\times$confian\c{c}a (cor = lift) e a contagem de regras por ano. Observa-se que regras de alto lift tendem a apresentar suporte baixo ($< 2\%$), coerente com a raridade de desfechos fatais.
-
-\begin{figure}[H]
+\begin{figure}[!htbp]
     \centering
-    \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{05_scatter_suporte_confianca_fatal.png}
-        \caption{Suporte $\times$ confian\c{c}a (cor = lift).}
-    \end{subfigure}
-    \hfill
-    \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{08_mineracao_por_ano.png}
-        \caption{Regras mineradas por ano.}
-    \end{subfigure}
-    \caption{Resultados da minera\c{c}\~ao FP-Growth restrita.}
-    \label{fig:mining}
+    \includegraphics[width=0.68\textwidth]{05_scatter_suporte_confianca_alta.png}
+    \caption{Suporte $\times$ confiança das regras de alta gravidade (cor = lift).}
+    \label{fig:scatter}
 \end{figure}
+
+\subsection{Baixa Gravidade e Fatalidade}
+
+Para verificar se os perfis descrevem severidade e não apenas ocorrência, comparamos os mesmos antecedentes contra baixa gravidade e fatalidade. Contextos com lift perto de 2,4 para alta gravidade têm lift em torno de 0,3 para baixa gravidade. Além disso, vários desses contextos têm lift acima de 5 para fatalidade pura, reforçando que capturam perfis associados ao extremo da severidade.
+
+\begin{table}[!htbp]
+    \centering
+    \caption{Mesmos contextos avaliados contra alta gravidade, baixa gravidade e fatalidade.}
+    \label{tab:comparacao}
+    \small
+    \input{tabelas/comparacao_alta_baixa_fatal.tex}
+\end{table}
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.82\textwidth]{09_comparacao_alta_baixa_fatal.png}
+    \caption{Comparação de lift para os mesmos contextos.}
+    \label{fig:comparacao}
+\end{figure}
+
+\subsection{Cobertura, Incerteza e Sensibilidade}
+
+Lift alto não implica grande cobertura. Por isso, avaliamos a cobertura única das regras, removendo sobreposição entre antecedentes. A Tabela~\ref{tab:cobertura} mostra que as top-20 regras cobrem 1.023 acidentes de alta gravidade, equivalentes a 12,5\% dos casos severos do recorte principal. Já o conjunto completo de 154 regras cobre 78,5\% dos casos de alta gravidade, mas com precisão menor, pois inclui perfis mais amplos e menos seletivos.
+
+\begin{table}[!htbp]
+    \centering
+    \caption{Cobertura única das regras sobre acidentes de alta gravidade.}
+    \label{tab:cobertura}
+    \small
+    \input{tabelas/cobertura_regras.tex}
+\end{table}
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.62\textwidth]{10_cobertura_regras.png}
+    \caption{Percentual de acidentes de alta gravidade cobertos por conjuntos de regras.}
+    \label{fig:cobertura}
+\end{figure}
+
+Para avaliar incerteza, aplicamos bootstrap com 400 reamostragens nas cinco regras de maior lift. A Tabela~\ref{tab:bootstrap} mostra intervalos de confiança empíricos para confiança e lift. Os intervalos são relativamente largos, como esperado para regras com suporte entre 0,5\% e 1,0\%, mas permanecem claramente acima da taxa-base.
+
+\begin{table}[!htbp]
+    \centering
+    \caption{Bootstrap das cinco regras de maior lift.}
+    \label{tab:bootstrap}
+    \small
+    \input{tabelas/bootstrap_top_regras.tex}
+\end{table}
+
+A análise de sensibilidade indica que os principais padrões persistem sob diferentes limiares. Reduzir a confiança mínima aumenta a quantidade de regras, enquanto aumentar suporte ou confiança reduz o conjunto minerado. A Tabela~\ref{tab:sensibilidade} resume a grade com lift mínimo fixado em 1,10.
+
+\begin{table}[!htbp]
+    \centering
+    \caption{Sensibilidade dos limiares de suporte e confiança (lift mínimo = 1,10).}
+    \label{tab:sensibilidade}
+    \small
+    \input{tabelas/sensibilidade.tex}
+\end{table}
 
 \subsection{Estabilidade Temporal e Estratos}
 
-Executamos FP-Growth independentemente por ano (2023--2026) e classificamos regras como \textbf{est\'aveis} quando presentes em $\geq 50\%$ dos anos. Identificamos \textbf{87 regras est\'aveis}, das quais 31 aparecem nos quatro anos (Tabela~\ref{tab:stab}). A regra \{Transitar na contram\~ao, Colis\~ao frontal, Zona Rural\} $\rightarrow$ Fatal permanece est\'avel com lift m\'edio 5,56.
+Nos anos completos 2023--2025, 142 regras aparecem em pelo menos dois dos três anos, e 60 aparecem nos três anos. A Tabela~\ref{tab:stab} mostra exemplos presentes em 3/3 anos. A análise Jan--Abr incluindo 2026 parcial foi usada como validação temporal externa, não como comparação anual direta.
 
-\begin{table}[H]
+Na mineração por estrato, foram encontradas 112 regras no subconjunto urbano e 122 regras no subconjunto rural, mantendo \texttt{uso\_solo} fora dos antecedentes para evitar vazamento do próprio critério de estratificação.
+
+\begin{table}[!htbp]
     \centering
-    \caption{Amostra de regras est\'aveis em 4/4 anos.}
+    \caption{Amostra de regras presentes nos três anos completos.}
     \label{tab:stab}
     \small
     \input{tabelas/estabilidade.tex}
 \end{table}
 
-A minera\c{c}\~ao por estrato de \textit{uso do solo} (urbano vs.\ rural) revelou \textbf{19} e \textbf{54} regras contextuais, respectivamente, confirmando maior densidade de padr\~oes em trechos rurais (Figura~\ref{fig:estratos}).
-
-\begin{figure}[H]
+\begin{figure}[!htbp]
     \centering
     \begin{subfigure}[b]{0.48\textwidth}
-        \includegraphics[width=\textwidth]{06_estabilidade_temporal.png}
-        \caption{Estabilidade temporal das regras.}
+        \includegraphics[width=\textwidth]{08_mineracao_por_ano.png}
+        \caption{Mineração por ano completo.}
     \end{subfigure}
     \hfill
     \begin{subfigure}[b]{0.48\textwidth}
         \includegraphics[width=\textwidth]{07_estratos_uso_solo.png}
-        \caption{Top regras por estrato (uso do solo).}
+        \caption{Estratos urbano/rural sem \texttt{uso\_solo} no antecedente.}
     \end{subfigure}
-    \caption{Monitoramento temporal e heterogeneidade urbano/rural.}
-    \label{fig:estratos}
+    \caption{Monitoramento retrospectivo e heterogeneidade por ambiente.}
+    \label{fig:monitoramento}
 \end{figure}
 
-\section{An\'alise dos Resultados}
+\FloatBarrier
 
-\textbf{H1} (Plena Noite + Pista Simples + Zona Rural): \textbf{parcialmente confirmada}. Regras noturnas em zona rural aparecem entre as de maior lift (Tabela~\ref{tab:top}), embora \textit{pista simples} apare\c{c}a mais frequentemente combinada a colis\~oes frontais do que a atropelamentos.
+\section{Análise dos Resultados}
 
-\textbf{H2} (Finais de semana + Madrugada): \textbf{parcialmente confirmada}. Regras com \texttt{fim\_de\_semana=Sim} e colis\~ao frontal em zona rural apresentam lift 4,76, mas padr\~oes noturnos dominam sobre madrugada isolada.
+\textbf{H1} (noite, pista e ambiente rural): parcialmente confirmada. A plena noite aparece de modo consistente, especialmente combinada com atropelamento de pedestre e colisão frontal. O ambiente rural aparece em várias regras, mas a análise por estrato evita usá-lo como explicação circular.
 
-\textbf{H3} (Colis\~oes frontais e atropelamentos): \textbf{confirmada}. Colis\~ao frontal e atropelamento de pedestre s\~ao os tipos mais recorrentes nos antecedentes de regras de alto lift; transitar na contram\~ao refor\c{c}a colis\~oes frontais fatais (conf.\ $\approx$ 42\%).
+\textbf{H2} (fim de semana): parcialmente confirmada. Fim de semana aparece em regras de colisão frontal e atropelamento, mas não explica sozinho a alta gravidade; seu efeito é contextual.
 
-\textbf{H4} (Clima adverso): \textbf{refutada parcialmente}. Contrariando a intui\c{c}\~ao, \textit{C\'eu Claro} aparece em regras de alto lift --- poss\'ivel confounding com volume de tr\'afego e visibilidade noturna, n\~ao necessariamente causalidade.
+\textbf{H3} (colisão frontal e atropelamento): confirmada como perfil de severidade. Esses tipos de acidente dominam as regras de maior lift e mantêm associação forte também com fatalidade pura. A interpretação deve considerar que \texttt{tipo\_acidente} é uma característica registrada após a ocorrência.
 
-\textbf{H5} (Urbano vs.\ rural): \textbf{confirmada}. Zona rural (\texttt{uso\_solo=N\~ao}) est\'a presente na maioria das regras top e o estrato rural concentra quase tr\^es vezes mais regras que o urbano.
+\textbf{H4} (clima adverso): não confirmada como fator dominante. \textit{Céu claro} aparece em várias regras, sugerindo que a severidade observada está mais relacionada ao tipo de ocorrência, fase do dia e dinâmica do acidente do que ao clima isolado.
 
-Enfatizamos que todas as regras expressam \textbf{coocorr\^encia estat\'istica}, n\~ao rela\c{c}\~ao causal. Fatores omitidos (velocidade, composi\c{c}\~ao da frota, interven\c{c}\~ao m\'edica) podem explicar parte dos padr\~oes observados.
+\textbf{H5} (urbano vs. rural): confirmada como heterogeneidade relevante. A mineração por estrato mostra padrões distintos, e o ambiente rural concentra regras associadas a colisões frontais e atropelamentos.
 
-\section{Diretrizes de IA Respons\'avel}
+Os resultados são mais úteis como \textbf{quantificação e priorização investigativa de padrões recorrentes} do que como descoberta causal. Regras envolvendo atropelamento de pedestre, pedestre na pista, colisão frontal e contramão são semanticamente esperadas, mas o ganho analítico está em medir suporte, confiança, lift, cobertura, especificidade contra baixa gravidade, estabilidade temporal e incerteza.
+
+\section{Diretrizes de IA Responsável}
 
 \subsection{Explicabilidade}
 
-Priorizamos regras com antecedentes curtos ($\leq 3$ itens), traduzidas para linguagem natural (notebook~05 e Tabela~\ref{tab:top}). Removemos redund\^ancias e tautologias (Pacote~A). Cada regra \'e acompanhada de suporte, confian\c{c}a e lift, com disclaimer expl\'icito sobre associa\c{c}\~ao $\neq$ causalidade. \textit{Trade-off}: regras complexas potencialmente relevantes foram descartadas em favor de interpretabilidade.
+A explicabilidade é central porque regras de associação podem produzir muitos padrões redundantes ou difíceis de auditar. No projeto, ela foi incorporada por três decisões concretas: restringir antecedentes a itens de perfil da ocorrência, limitar regras a no máximo três condições e traduzir regras para linguagem natural acompanhada de suporte, confiança, lift, cobertura e intervalos de bootstrap. O principal trade-off é que regras mais longas e específicas são descartadas em favor de clareza e auditabilidade.
 
-\subsection{Monitoramento e Avalia\c{c}\~ao}
+\subsection{Monitoramento Retrospectivo e Avaliação}
 
-Executamos FP-Growth por ano e calculamos recorr\^encia temporal (Figura~\ref{fig:estratos}). Regras est\'aveis (87) recebem maior peso anal\'itico; transit\'orias s\~ao interpretadas com cautela. \textit{Trade-off}: subdivis\~ao temporal reduz suporte por janela, dificultando padr\~oes sobre fatais em anos isolados.
+Padrões de severidade podem mudar com frota, infraestrutura, fiscalização e comportamento. A diretriz foi operacionalizada por mineração independente nos anos completos 2023--2025 e por validação Jan--Abr incluindo 2026 parcial. Isso é uma avaliação retrospectiva de estabilidade temporal, não um sistema operacional de monitoramento contínuo. O trade-off é a redução de suporte em janelas menores, especialmente para fatalidade pura.
 
-\section{Conclus\~oes e Perspectivas}
+\section{Limitações}
 
-Este projeto aplicou FP-Growth de forma restrita e interpret\'avel sobre 26.899 acidentes com v\'itimas em MG (2023--2026), produzindo 76 regras contexto $\rightarrow$ Fatal e evid\^encias de estabilidade temporal. Os padr\~oes refor\c{c}am a gravidade de colis\~oes frontais e atropelamentos em trechos rurais e noturnos, subsidiando hip\'oteses para pol\'iticas de preven\c{c}\~ao --- sempre como associa\c{c}\~oes estat\'isticas, n\~ao prescri\c{c}\~oes causais.
+As conclusões devem ser lidas como \textbf{associações estatísticas}. As regras não provam causalidade e não estimam risco absoluto de ocorrência de acidente grave, pois faltam medidas de exposição, como fluxo de veículos, quilometragem percorrida, velocidade real, iluminação, fiscalização e tempo de socorro. Além disso, \texttt{tipo\_acidente} e \texttt{causa\_acidente} são variáveis pós-evento; elas ajudam a caracterizar perfis de severidade, mas não são preditores disponíveis antes do acidente.
 
-Como extens\~oes futuras, sugere-se: (i)~incorporar vari\'aveis veiculares e de infraestrutura adicional; (ii)~comparar com modelos preditivos (classifica\c{c}\~ao) como linha de base; (iii)~expandir o recorte geogr\'afico; e (iv)~integrar dados de interven\c{c}\~ao (tempo de socorro) para reduzir confounding.
+Também há risco de achados espúrios porque muitas combinações de itens são avaliadas. Suporte mínimo, poda, estabilidade temporal, comparação com baixa gravidade, bootstrap e sensibilidade de limiares reduzem esse risco, mas não o eliminam. Trabalhos futuros devem incluir correção formal para múltiplas comparações, validação em outros estados, dados externos de infraestrutura e comparação com modelos supervisionados simples, como árvore rasa ou regressão logística, apenas como baseline de consistência.
 
-\addcontentsline{toc}{section}{Refer\^encias}
+\section{Conclusões e Perspectivas}
+
+O projeto caracteriza perfis interpretáveis de alta severidade entre acidentes com vítimas em rodovias federais de MG. A mineração principal, baseada nos anos completos 2023--2025, encontrou 154 regras do tipo perfil da ocorrência $\rightarrow$ AltaGravidade. Os padrões mais fortes envolvem atropelamentos noturnos, pedestres na pista, contramão e colisões frontais, com lift máximo de 2,43 para alta gravidade e lift acima de 5 para fatalidade em vários dos mesmos contextos.
+
+A análise de cobertura mostra o trade-off entre seletividade e abrangência: top regras são muito precisas, mas cobrem poucos casos; o conjunto completo cobre grande parte dos acidentes de alta gravidade, porém com precisão menor. Assim, as regras são mais adequadas para orientar investigação, fiscalização e hipóteses de prevenção do que para decisões automáticas. A conclusão central é: \textbf{o trabalho minera perfis recorrentes, estáveis e específicos de severidade; não estima causalidade nem risco absoluto.}
+
+\addcontentsline{toc}{section}{Referências}
 \begin{thebibliography}{99}
     \bibitem{agrawal1994} AGRAWAL, R.; SRIKANT, R. Fast algorithms for mining association rules. In: \textit{Proceedings of the 20th International Conference on Very Large Data Bases}, 1994.
     \bibitem{han2000} HAN, J.; PEI, J.; YIN, Y. Mining frequent patterns without candidate generation. \textit{ACM SIGMOD Record}, v.~29, n.~2, p.~1--12, 2000.
     \bibitem{zaki2020} ZAKI, M. J.; MEIRA JR, W. \textit{Data Mining and Machine Learning: Fundamental Concepts and Algorithms}. 2nd ed. Cambridge University Press, 2020.
     \bibitem{wirth2000} WIRTH, R.; HIPP, J. CRISP-DM: Towards a standard process model for data mining. In: \textit{Proceedings of the 4th International Conference on the Practical Applications of Knowledge Discovery and Data Mining}, 2000.
-    \bibitem{tan2006} TAN, P.-N.; STEINBACH, M.; KUMAR, V. \textit{Introduction to Data Mining}. Addison-Wesley, 2006.
-    \bibitem{prf2026} BRASIL. Pol\'icia Rodovi\'aria Federal. \textbf{Dados Abertos da PRF}. Bras\'ilia, 2026. Dispon\'ivel em: \url{https://www.gov.br/prf/pt-br/acesso-a-informacao/dados-abertos/dados-abertos-da-prf}.
+    \bibitem{prf2026} BRASIL. Polícia Rodoviária Federal. \textbf{Dados Abertos da PRF}. Brasília, 2026. Disponível em: \url{https://www.gov.br/prf/pt-br/acesso-a-informacao/dados-abertos/dados-abertos-da-prf}.
 \end{thebibliography}
 
 \end{document}
